@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: linkmagico-demo
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: GROQ_API_KEY
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: HOTMART_LINK
+        value: https://pay.hotmart.com/G103177435I

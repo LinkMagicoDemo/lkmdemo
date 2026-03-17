@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>LinkMágico Demo — Chat IA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#07142B;--bg-dark:#020617;--surface:rgba(10,20,40,0.7);--primary:#1E6BFF;--glow:#7B61FF;--green:#2BE66A;--text:#c8d6e5;--text-bright:#f0f4ff;--text-muted:#6b7c93;--font:'Inter',system-ui,sans-serif}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--font);background:linear-gradient(180deg,var(--bg),var(--bg-dark));color:var(--text)}
+
+.app{display:flex;flex-direction:column;height:100vh;max-width:520px;margin:0 auto;position:relative}
+
+/* ===== HEADER ===== */
+.header{padding:14px 18px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(100,150,255,0.15);background:linear-gradient(135deg,rgba(30,107,255,0.12),rgba(123,97,255,0.06));backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);flex-shrink:0;z-index:10}
+.h-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--glow));display:flex;align-items:center;justify-content:center;font-size:.8rem;color:#fff;font-weight:700;box-shadow:0 0 15px rgba(30,107,255,0.4)}
+.h-info{flex:1}
+.h-name{font-weight:600;color:var(--text-bright);font-size:.9rem}
+.h-status{font-size:.68rem;color:var(--green);display:flex;align-items:center;gap:4px}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(43,230,106,.6)}50%{box-shadow:0 0 0 5px rgba(43,230,106,0)}}
+.h-status::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+.h-page{font-size:.65rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px}
+.h-close{color:var(--text-muted);text-decoration:none;font-size:1.1rem;padding:8px}
+
+/* ===== PROGRESS BAR ===== */
+.progress{padding:6px 18px;background:rgba(5,10,25,0.6);border-bottom:1px solid rgba(100,150,255,0.08);flex-shrink:0;display:flex;align-items:center;gap:10px}
+.progress-bar{flex:1;height:3px;border-radius:2px;background:rgba(100,150,255,0.1);overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--green),#00FF94);border-radius:2px;transition:width .5s ease;width:0%}
+.progress-text{font-size:.62rem;color:var(--text-muted);white-space:nowrap}
+.progress-time{font-size:.62rem;color:var(--text-muted);white-space:nowrap}
+
+/* ===== CHAT BODY ===== */
+.chat-body{flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:8px;scroll-behavior:smooth}
+
+/* ===== MESSAGES ===== */
+@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.msg{max-width:85%;padding:12px 16px;border-radius:18px;font-size:.88rem;line-height:1.65;animation:msgIn .3s ease;white-space:pre-line}
+.msg.ai{background:rgba(30,60,120,0.5);border:1px solid rgba(100,150,255,0.12);color:var(--text);align-self:flex-start;border-bottom-left-radius:4px}
+.msg.user{background:rgba(255,255,255,0.08);color:var(--text-bright);align-self:flex-end;border-bottom-right-radius:4px}
+.msg.system{background:rgba(43,230,106,0.06);border:1px solid rgba(43,230,106,0.15);color:var(--text-muted);font-size:.78rem;text-align:center;align-self:center;border-radius:12px;max-width:95%}
+
+/* ===== TYPING ===== */
+@keyframes typeDot{0%,60%,100%{opacity:.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-4px)}}
+.typing{align-self:flex-start;padding:12px 18px;background:rgba(30,60,120,0.35);border:1px solid rgba(100,150,255,0.08);border-radius:18px;border-bottom-left-radius:4px;display:flex;gap:5px}
+.typing span{width:7px;height:7px;border-radius:50%;background:var(--primary);animation:typeDot 1.2s infinite}
+.typing span:nth-child(2){animation-delay:.2s}
+.typing span:nth-child(3){animation-delay:.4s}
+
+/* ===== IN-CHAT BUTTONS ===== */
+.chat-btns{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chat-btn{padding:8px 14px;border-radius:20px;border:1px solid rgba(30,107,255,0.3);background:rgba(30,107,255,0.1);color:var(--primary);font-size:.78rem;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .2s}
+.chat-btn:hover{background:rgba(30,107,255,0.25);border-color:var(--primary);box-shadow:0 0 10px rgba(30,107,255,0.2)}
+.chat-btn.cta{background:linear-gradient(90deg,var(--green),#00FF94);color:#0a2e14;border:none;font-weight:700;box-shadow:0 0 15px rgba(43,230,106,0.3)}
+.chat-btn.cta:hover{box-shadow:0 0 25px rgba(43,230,106,0.5);transform:translateY(-1px)}
+
+/* ===== INPUT ===== */
+.input-area{padding:12px 18px;border-top:1px solid rgba(100,150,255,0.1);background:rgba(5,10,25,0.8);flex-shrink:0;display:flex;gap:10px;align-items:center}
+.input-field{flex:1;padding:12px 16px;border-radius:24px;border:1px solid rgba(100,150,255,0.15);background:rgba(10,20,40,0.6);color:var(--text-bright);font-family:var(--font);font-size:.88rem;outline:none;transition:border-color .2s}
+.input-field:focus{border-color:var(--primary)}
+.input-field::placeholder{color:var(--text-muted)}
+.send-btn{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--glow));border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:all .2s;flex-shrink:0}
+.send-btn:hover{transform:scale(1.08);box-shadow:0 0 20px rgba(30,107,255,0.4)}
+.send-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+
+/* ===== LIMIT OVERLAY ===== */
+.limit-overlay{display:none;position:absolute;inset:0;background:rgba(2,6,23,0.95);backdrop-filter:blur(10px);z-index:100;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px;animation:msgIn .5s ease}
+.limit-overlay.show{display:flex}
+.limit-icon{font-size:3rem;color:var(--primary);margin-bottom:20px}
+.limit-title{font-size:1.3rem;font-weight:800;color:var(--text-bright);margin-bottom:12px;line-height:1.3}
+.limit-text{font-size:.92rem;color:var(--text-muted);margin-bottom:24px;line-height:1.7;max-width:400px}
+.limit-cta{padding:16px 36px;border-radius:14px;background:linear-gradient(90deg,var(--green),#00FF94);color:#0a2e14;font-weight:700;font-size:1rem;border:none;cursor:pointer;font-family:var(--font);text-decoration:none;display:inline-block;box-shadow:0 0 30px rgba(43,230,106,0.4);transition:all .3s}
+.limit-cta:hover{transform:translateY(-3px);box-shadow:0 0 50px rgba(43,230,106,0.6)}
+.limit-sub{font-size:.72rem;color:var(--text-muted);margin-top:12px}
+
+/* ===== GUIDED CONVERSION ===== */
+.guided{display:none;padding:20px;margin:8px 0;border-radius:16px;background:linear-gradient(135deg,rgba(30,107,255,0.08),rgba(123,97,255,0.06));border:1px solid rgba(30,107,255,0.15);text-align:center}
+.guided.show{display:block;animation:msgIn .5s ease}
+.guided p{font-size:.88rem;color:var(--text);line-height:1.6;margin-bottom:8px}
+.guided strong{color:var(--text-bright)}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+<!-- Header -->
+<div class="header">
+<div class="h-avatar">IA</div>
+<div class="h-info">
+<div class="h-name">Assistente IA</div>
+<div class="h-status">Online</div>
+</div>
+<div class="h-page" id="pageName"></div>
+<a href="/" class="h-close"><i class="fas fa-times"></i></a>
+</div>
+
+<!-- Progress -->
+<div class="progress">
+<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+<div class="progress-text" id="progressText">0/20</div>
+<div class="progress-time" id="progressTime">30 min</div>
+</div>
+
+<!-- Chat Body -->
+<div class="chat-body" id="chatBody"></div>
+
+<!-- Input -->
+<div class="input-area" id="inputArea">
+<input type="text" class="input-field" id="msgInput" placeholder="Digite sua mensagem..." autocomplete="off">
+<button class="send-btn" id="sendBtn"><i class="fas fa-paper-plane"></i></button>
+</div>
+
+<!-- Limit Overlay -->
+<div class="limit-overlay" id="limitOverlay">
+<div class="limit-icon"><i class="fas fa-lock"></i></div>
+<div class="limit-title">Este teste atingiu o limite de demonstração</div>
+<div class="limit-text">Para usar com visitantes reais e ilimitados, ative seu LinkMágico completo.</div>
+<a class="limit-cta" id="limitCta" href="#" target="_blank"><i class="fas fa-wand-magic-sparkles"></i> Ativar meu LinkMágico</a>
+<div class="limit-sub">Menos de R$97/ano · Sem mensalidade</div>
+</div>
+</div>
+
+<script>
+(function() {
+    var SESSION_ID = window.location.pathname.split('/demo/')[1];
+    if (!SESSION_ID) { window.location.href = '/'; return; }
+
+    var chatBody = document.getElementById('chatBody');
+    var msgInput = document.getElementById('msgInput');
+    var sendBtn = document.getElementById('sendBtn');
+    var progressFill = document.getElementById('progressFill');
+    var progressText = document.getElementById('progressText');
+    var progressTime = document.getElementById('progressTime');
+    var limitOverlay = document.getElementById('limitOverlay');
+    var limitCta = document.getElementById('limitCta');
+    var pageName = document.getElementById('pageName');
+    var sending = false;
+
+    // Buscar dados da sessão
+    fetch('/api/session/' + SESSION_ID)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (!data.success) {
+                showLimit('Demonstração não encontrada ou expirada.');
+                return;
+            }
+            pageName.textContent = data.session.title || data.session.url;
+            limitCta.href = data.session.hotmartLink || 'https://pay.hotmart.com/G103177435I';
+            updateProgress(data.session.messageCount || 0, data.session.maxMessages, data.session.remainingMinutes);
+
+            // Auto-saudação
+            addSystemMsg('🔗 Demonstração ativa — ' + (data.session.title || 'Página'));
+            setTimeout(function() { sendAuto('Olá! Vim pelo link.'); }, 800);
+        })
+        .catch(function() { showLimit('Erro ao carregar demonstração.'); });
+
+    // Timer
+    var timerInterval = setInterval(function() {
+        fetch('/api/session/' + SESSION_ID)
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (!data.success || data.session.isExpired) {
+                    clearInterval(timerInterval);
+                    showLimit();
+                    return;
+                }
+                updateProgress(data.session.messageCount, data.session.maxMessages, data.session.remainingMinutes);
+            });
+    }, 30000);
+
+    function updateProgress(count, max, mins) {
+        var pct = Math.min(100, (count / max) * 100);
+        progressFill.style.width = pct + '%';
+        if (pct > 70) progressFill.style.background = 'linear-gradient(90deg,#ff6b6b,#ef4444)';
+        progressText.textContent = count + '/' + max;
+        if (mins !== undefined) progressTime.textContent = mins + ' min';
+    }
+
+    function addMsg(text, type) {
+        var d = document.createElement('div');
+        d.className = 'msg ' + type;
+        d.textContent = text;
+        chatBody.appendChild(d);
+        chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    function addSystemMsg(text) {
+        var d = document.createElement('div');
+        d.className = 'msg system';
+        d.innerHTML = text;
+        chatBody.appendChild(d);
+        chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    function addAIMsg(text) {
+        var d = document.createElement('div');
+        d.className = 'msg ai';
+        d.textContent = text;
+        chatBody.appendChild(d);
+        chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    function addTyping() {
+        var d = document.createElement('div');
+        d.className = 'typing';
+        d.id = 'typingIndicator';
+        d.innerHTML = '<span></span><span></span><span></span>';
+        chatBody.appendChild(d);
+        chatBody.scrollTop = chatBody.scrollHeight;
+        return d;
+    }
+
+    function removeTyping() {
+        var t = document.getElementById('typingIndicator');
+        if (t) t.remove();
+    }
+
+    function showLimit(msg) {
+        if (msg) document.querySelector('.limit-text').textContent = msg;
+        limitOverlay.classList.add('show');
+        msgInput.disabled = true;
+        sendBtn.disabled = true;
+    }
+
+    function showGuided() {
+        var g = document.createElement('div');
+        g.className = 'guided show';
+        g.innerHTML = '<p>Você acabou de testar um <strong>exemplo real.</strong></p><p>Agora imagine isso funcionando com <strong>todos os seus visitantes.</strong></p><div style="margin-top:14px"><a href="https://pay.hotmart.com/G103177435I" target="_blank" class="chat-btn cta" style="padding:12px 24px;font-size:.88rem"><i class="fas fa-wand-magic-sparkles"></i> Criar meu primeiro LinkMágico</a></div>';
+        chatBody.appendChild(g);
+        chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    async function sendMessage(text) {
+        if (sending || !text.trim()) return;
+        sending = true;
+        sendBtn.disabled = true;
+
+        addMsg(text, 'user');
+        msgInput.value = '';
+
+        var typing = addTyping();
+
+        try {
+            var res = await fetch('/api/chat/' + SESSION_ID, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: text })
+            });
+            var data = await res.json();
+
+            // Delay realista
+            var delay = 800 + Math.random() * 700;
+            await new Promise(function(r) { setTimeout(r, delay); });
+
+            removeTyping();
+
+            if (data.limitReached) {
+                showLimit(data.error);
+                return;
+            }
+
+            if (!res.ok) {
+                addSystemMsg('⚠️ ' + (data.error || 'Erro'));
+                return;
+            }
+
+            addAIMsg(data.response);
+
+            // Update progress
+            if (data.stats) {
+                updateProgress(data.stats.messageCount, data.stats.maxMessages, data.stats.remainingMinutes);
+
+                // Warning próximo do limite
+                if (data.stats.isNearLimit) {
+                    addSystemMsg('⚠️ Restam poucas mensagens na demonstração');
+                }
+
+                // Guided conversion na metade
+                if (data.stats.messageCount === Math.floor(data.stats.maxMessages / 2)) {
+                    setTimeout(showGuided, 1500);
+                }
+            }
+
+        } catch (err) {
+            removeTyping();
+            addSystemMsg('⚠️ Erro de conexão. Tente novamente.');
+        } finally {
+            sending = false;
+            sendBtn.disabled = false;
+            msgInput.focus();
+        }
+    }
+
+    function sendAuto(text) {
+        sendMessage(text);
+    }
+
+    sendBtn.addEventListener('click', function() { sendMessage(msgInput.value.trim()); });
+    msgInput.addEventListener('keydown', function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(msgInput.value.trim()); } });
+})();
+</script>
+</body>
+</html>
