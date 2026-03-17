@@ -130,12 +130,20 @@ router.post('/chat/:id', async (req, res) => {
         // Stats atualizadas
         const stats = getSessionStats(id);
 
+        // Detectar URLs na resposta para gerar botões de link
+        const urlPattern = /(https?:\/\/[^\s]+)/g;
+        const detectedUrls = result.text.match(urlPattern) || [];
+        const primaryLink = detectedUrls[0] || null;
+
         res.json({
             success: true,
             response: result.text,
+            messages: result.messages || [result.text],
             provider: result.provider,
             emotion: result.emotion?.primary,
             stage: result.stage,
+            checkoutLink: primaryLink,
+            hotmartLink: process.env.HOTMART_LINK || 'https://pay.hotmart.com/G103177435I',
             stats: {
                 messageCount: stats.messageCount,
                 maxMessages: stats.maxMessages,

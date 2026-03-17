@@ -3,6 +3,7 @@ const { getDb } = require('../database/init');
 
 const MAX_MESSAGES = parseInt(process.env.DEMO_MAX_MESSAGES || '20');
 const EXPIRY_MINUTES = parseInt(process.env.DEMO_EXPIRY_MINUTES || '30');
+const MAX_LINKS_PER_IP = parseInt(process.env.DEMO_MAX_LINKS_PER_IP || '1');
 
 function createSession(url, pageData, ip) {
     const db = getDb();

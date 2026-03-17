@@ -289,19 +289,37 @@ body{font-family:var(--font);background:linear-gradient(180deg,var(--bg),var(--b
                     
                     var buttons = [];
                     if (i === data.messages.length - 1) {
-                        if (data.stage === 'DECISÃO' || /oferta|checkout|comprar/i.test(data.response)) {
+                        // 1. Se detectou URL na resposta → botão de link clicável
+                        if (data.checkoutLink) {
+                            buttons = [
+                                { text: '👉 Acessar agora', cta: true, url: data.checkoutLink },
+                                { text: 'Tenho mais dúvidas' }
+                            ];
+                        }
+                        // 2. Se estágio de decisão ou menção a oferta
+                        else if (data.stage === 'DECISÃO' || /oferta|checkout|comprar|pre[çc]o/i.test(data.response)) {
                             buttons = [
                                 { text: '👉 Ver oferta', cta: true, url: data.hotmartLink || '#' },
                                 { text: 'Ainda tenho dúvidas' }
                             ];
-                        } else if (data.stats && data.stats.messageCount === 1) {
+                        }
+                        // 3. Micro-commitment na primeira interação
+                        else if (data.stats && data.stats.messageCount === 1) {
                             buttons = [
                                 { text: 'Aumentar Vendas' },
                                 { text: 'Automatizar Atendimento' }
                             ];
                         }
                     }
-                    addAIMsg(data.messages[i], buttons);
+                    
+                    // Limpar URLs do texto das mensagens para exibição mais limpa
+                    var cleanText = data.messages[i];
+                    if (data.checkoutLink && buttons.length > 0) {
+                        cleanText = cleanText.replace(/(https?:\/\/[^\s]+)/g, '').trim();
+                        if (!cleanText) cleanText = 'Aqui está o link:';
+                    }
+                    
+                    addAIMsg(cleanText, buttons);
                 }
             } else {
                 addAIMsg(data.response);
