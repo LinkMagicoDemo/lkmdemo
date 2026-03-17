@@ -32,7 +32,8 @@ app.use(helmet({
             fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
             scriptSrc: ["'self'", "'unsafe-inline'"],
             imgSrc: ["'self'", "data:", "https:"],
-            connectSrc: ["'self'"]
+            connectSrc: ["'self'"],
+            frameAncestors: ["'self'", "https://www.arsenalsecretodosceos.com.br", "https://arsenalsecretodosceos.com.br", "http://localhost:*", "http://127.0.0.1:*"]
         }
     }
 }));
