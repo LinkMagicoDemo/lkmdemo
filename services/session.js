@@ -3,10 +3,11 @@ const { getDb } = require('../database/init');
 
 const MAX_MESSAGES = parseInt(process.env.DEMO_MAX_MESSAGES || '20');
 const EXPIRY_MINUTES = parseInt(process.env.DEMO_EXPIRY_MINUTES || '30');
-const MAX_LINKS_PER_IP = parseInt(process.env.DEMO_MAX_LINKS_PER_IP || '1');
 
 function createSession(url, pageData, ip) {
     const db = getDb();
+
+    const MAX_LINKS_PER_IP = parseInt(process.env.DEMO_MAX_LINKS_PER_IP || '5');
 
     // Verificar limite de links por IP
     const activeByIp = db.prepare(
@@ -14,7 +15,7 @@ function createSession(url, pageData, ip) {
     ).get(ip || '');
 
     if (activeByIp && activeByIp.count >= MAX_LINKS_PER_IP) {
-        return { error: 'LIMIT_REACHED', message: 'Você já tem uma demonstração ativa. Aguarde ela expirar ou ative o LinkMágico completo.' };
+        return { error: 'LIMIT_REACHED', message: 'Você atingiu o limite de demonstrações simultâneas. Aguarde uma expirar ou ative o LinkMágico completo.' };
     }
 
     const id = uuidv4().substring(0, 8);

@@ -47,11 +47,11 @@ app.use(rateLimit({
     message: { error: 'Muitas requisições. Aguarde um momento.' }
 }));
 
-// Rate limiting para geração de links
+// Rate limiting para geração de links (menos restritivo para demo)
 app.use('/api/generate', rateLimit({
-    windowMs: 5 * 60 * 1000,
-    max: 5,
-    message: { error: 'Limite de gerações atingido. Aguarde 5 minutos.' }
+    windowMs: 15 * 60 * 1000, // 15 minutos
+    max: 30, // 30 gerações por janela
+    message: { error: 'Limite de gerações atingido. Aguarde um momento.' }
 }));
 
 // ===== ROTAS ESTÁTICAS =====
