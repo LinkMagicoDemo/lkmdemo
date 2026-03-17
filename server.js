@@ -61,6 +61,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 const apiRoutes = require('./routes/api');
 app.use('/api', apiRoutes);
 
+// ===== ROTA /criar-link =====
+app.get('/criar-link', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'criar-link.html'));
+});
+
 // ===== ROTA /demo/:id =====
 app.get('/demo/:id', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'demo.html'));

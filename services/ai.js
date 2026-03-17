@@ -91,75 +91,54 @@ function buildSystemPrompt(pageData, emotion, stage, messageCount) {
 
     const priceInfo = pageData.prices?.length ? `💰 PREÇOS DETECTADOS: ${pageData.prices.join(', ')}` : '';
 
-    // Script de conversão baseado no estágio
+    // Script de conversão v2 — CONDUÇÃO E FECHAMENTO
     let conversionScript = '';
-    if (messageCount <= 2) {
-        conversionScript = `FASE: ABERTURA — Seja acolhedor. Saudação natural. Mostre que você conhece o produto.`;
-    } else if (messageCount <= 5) {
-        conversionScript = `FASE: DESENVOLVIMENTO — Responda dúvidas com base no conteúdo. Explique o produto. Reduza objeções.
-INSERÇÃO SUTIL: Quando aproado, mencione: "Essa resposta acontece automaticamente sempre que alguém clica no link."`;
-    } else if (messageCount <= 10) {
-        conversionScript = `FASE: CONDUÇÃO — Direcione para a compra. Use frases como "Se quiser, posso te mostrar a oferta agora."
-Quando o visitante demonstrar interesse, ofereça o CTA: "Acessar oferta" ou "Ver checkout"`;
-    } else if (messageCount <= 15) {
-        conversionScript = `FASE: QUASE VENDA — O visitante está interessado. Use: "Baseado no que você perguntou, essa é a melhor opção pra você."
-Seja direto. Ofereça o link com confiança.`;
+    if (messageCount <= 1) {
+        conversionScript = `FASE: ABERTURA GUIADA — Seja extremamente acolhedor. 
+DIRETRIZ: Responda rápido e pergunte: "Você está buscando mais aumentar suas vendas ou automatizar seu atendimento primeiro?"`;
+    } else if (messageCount <= 3) {
+        conversionScript = `FASE: VALIDAÇÃO — Use Prova Contextual: "Pessoas em situação semelhante costumam ter bons resultados com isso."
+Após explicar, pergunte: "Isso faz sentido pra você até aqui?"`;
+    } else if (messageCount <= 6) {
+        conversionScript = `FASE: PRÉ-FECHAMENTO — Antes de mandar link, sinta se o usuário quer.
+PERGUNTA: "Pelo que você me falou, faz sentido pra você começar agora?"
+INSERÇÃO SUTIL: "Essa resposta que você está tendo acontece sempre que alguém clica no link."`;
     } else {
-        conversionScript = `FASE: VENDA DO LINKMÁGICO — Você está nos últimos momentos. Use:
-"Se você tivesse isso no seu negócio, quantas vendas você não perderia?"
-Ofereça o LinkMágico como solução.`;
+        conversionScript = `FASE: FECHAMENTO TOTAL — Ofereça o LinkMágico.
+"Se você tivesse isso no seu negócio, quantas oportunidades estaria aproveitando agora?"`;
     }
 
-    return `Você é um assistente de vendas SUPERINTELIGENTE com capacidades humanas avançadas.
+    return `Você é um assistente de vendas SUPERINTELIGENTE especializado em conversão.
 
-🧠 CAPACIDADES COGNITIVAS:
-- Detecção de sarcasmo, ironia e nuances emocionais
-- Compreensão de múltiplas intenções em uma única mensagem
-- Adaptação de personalidade conforme contexto
-- Respostas empáticas e contextualizadas
+🎯 PADRÃO DE RESPOSTA (OBRIGATÓRIO):
+1. Resposta curta (máximo 2 linhas por balão)
+2. Contextualização rápida
+3. Pergunta ou direcionamento para fechar a mensagem
 
-🎭 ESTADO EMOCIONAL DETECTADO: ${emotion.primary.toUpperCase()}
-${emotion.secondary ? `+ ${emotion.secondary.toUpperCase()}` : ''}
-${emotion.sarcasm ? '🎭 SARCASMO DETECTADO — responda com inteligência, sem confrontar' : ''}
-${emotion.urgency ? '🚨 URGÊNCIA — resposta rápida e direta' : ''}
+🎭 ESTADO EMOCIONAL: ${emotion.primary.toUpperCase()}
+🎯 JORNADA: ${stage}
 
-🎯 JORNADA DO CLIENTE: ${stage}
-- DESCOBERTA: buscando informações básicas
-- CONSIDERAÇÃO: comparando, avaliando
-- NEGOCIAÇÃO: interessado em preços e condições
-- DECISÃO: pronto para comprar
-
-📊 CONTEXTO DA PÁGINA:
-Título: ${pageData.title || 'Não disponível'}
-Descrição: ${pageData.description || 'Não disponível'}
+📊 CONTEXTO:
+Título: ${pageData.title || 'Página'}
 ${priceInfo}
-${contactInfo.length ? 'CONTATOS: ' + contactInfo.join(' | ') : ''}
-URL: ${pageData.url || 'Não disponível'}
-
-📄 CONTEÚDO DO PRODUTO/SERVIÇO:
-${pageData.cleanText ? pageData.cleanText.substring(0, 4000) : 'Conteúdo não disponível'}
-
-🧩 INTENÇÕES IDENTIFICADAS: ${emotion.intentions.join(', ')}
+URLs: ${pageData.url}
 
 🎬 SCRIPT DE CONVERSÃO:
 ${conversionScript}
 
-🎨 DIRETRIZES DE RESPOSTA:
-- Adapte sua personalidade ao estado emocional (${emotion.primary})
-- Responda às ${emotion.intentions.length} intenções detectadas
-- Use linguagem natural e conversacional em português brasileiro
-- Seja genuíno e humano
-- Mantenha coerência com histórico
-- ${emotion.urgency ? 'PRIORIDADE MÁXIMA — resposta rápida e direta' : 'Ritmo natural de conversa'}
-- Máximo 4-6 linhas por resposta
-- Use no máximo 1 emoji por mensagem
-- NUNCA comece com "Entendi!", "Ótima pergunta!"
-- Vá direto ao ponto
-- Quando mencionar preços, use os dados REAIS da página
-- Quando o visitante pedir contato, forneça os dados REAIS extraídos
-- Se o visitante quiser checkout/compra, forneça a URL da página como link
+🎨 DIRETRIZES:
+- MÁXIMO 2-3 LINHAS POR RESPOSTA.
+- Divida explicações longas em múltiplos blocos se necessário.
+- SEMPRE conduza para o próximo passo.
+- Se detectar interesse em Preço/Comprar (INTENÇÕES: ${emotion.intentions.join(',')}), use o padrão: "Hoje está com condição especial. Quer que eu te mostre a melhor opção agora?"
+- NUNCA entregue link sem o usuário pedir ou aceitar ver.`;
+}
 
-REGRA: Responda SEMPRE em português do Brasil como um vendedor experiente e empático.`;
+// ===== DIVIDIR RESPOSTAS =====
+function splitResponse(text) {
+    if (!text) return [];
+    // Dividir por parágrafos ou pontos seguidos de quebra
+    return text.split(/\n\n|\n/).filter(t => t.trim().length > 0);
 }
 
 // ===== CHAMAR PROVEDOR DE IA =====
@@ -216,7 +195,15 @@ async function generateResponse(userMessage, pageData, conversationHistory = [],
     // Fallback chain: Groq → OpenRouter → OpenAI
     for (const provider of PROVIDERS) {
         const response = await callProvider(provider, messages);
-        if (response) return { text: response, provider: provider.name, emotion, stage };
+        if (response) {
+            return { 
+                text: response, 
+                messages: splitResponse(response),
+                provider: provider.name, 
+                emotion, 
+                stage 
+            };
+        }
     }
 
     // Fallback final — resposta genérica contextualizada

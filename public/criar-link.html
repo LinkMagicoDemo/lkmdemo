@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Criar meu LinkMágico — Conversão Rápida</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#07142B;--bg-dark:#020617;--primary:#1E6BFF;--green:#2BE66A;--text:#c8d6e5;--text-bright:#f0f4ff;--font:'Inter',sans-serif}
+body{font-family:var(--font);background:linear-gradient(180deg,var(--bg),var(--bg-dark));color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;line-height:1.6}
+.card{width:100%;max-width:500px;background:rgba(10,20,40,0.6);backdrop-filter:blur(20px);padding:40px 30px;border-radius:28px;border:1px solid rgba(100,150,255,0.15);text-align:center;box-shadow:0 0 80px rgba(30,107,255,0.1)}
+.headline{font-size:1.8rem;font-weight:900;color:var(--text-bright);line-height:1.2;margin-bottom:12px}
+.subheadline{font-size:.95rem;color:var(--text);margin-bottom:30px;opacity:.8}
+.input-wrap{margin-bottom:20px}
+.input{width:100%;padding:16px;border-radius:12px;border:1px solid rgba(100,150,255,0.2);background:rgba(5,15,35,0.8);color:#fff;font-size:1rem;outline:none;transition:all .3s}
+.input:focus{border-color:var(--primary);box-shadow:0 0 15px rgba(30,107,255,0.2)}
+.btn{width:100%;padding:18px;border-radius:12px;background:linear-gradient(90deg,var(--green),#00FF94);color:#0a2e14;font-weight:800;font-size:1.1rem;border:none;cursor:pointer;transition:all .3s;box-shadow:0 0 30px rgba(43,230,106,0.3)}
+.btn:hover{transform:translateY(-2px);box-shadow:0 0 50px rgba(43,230,106,0.5)}
+.micro{font-size:.75rem;margin-top:15px;color:var(--text);opacity:.6}
+.brand{margin-bottom:30px;font-weight:800;color:var(--text-bright);letter-spacing:1px}
+.brand i{color:var(--primary);margin-right:5px}
+</style>
+</head>
+<body>
+<div class="card">
+    <div class="brand"><i class="fas fa-link"></i> LinkMágico</div>
+    <h1 class="headline">Você acabou de ver isso vendendo.</h1>
+    <p class="subheadline">Esse chat que você acabou de usar foi gerado automaticamente. Agora coloque no seu negócio em 2 minutos.</p>
+    
+    <div class="input-wrap">
+        <input type="url" id="urlInput" class="input" placeholder="Cole sua URL aqui (ex: sua-loja.com)" autocomplete="off">
+    </div>
+    <button class="btn" onclick="generate()">Criar meu LinkMágico</button>
+    <p class="micro">Sem cartão • Teste em segundos</p>
+</div>
+
+<script>
+function generate() {
+    const url = document.getElementById('urlInput').value.trim();
+    if(!url) return document.getElementById('urlInput').focus();
+    window.location.href = '/?url=' + encodeURIComponent(url);
+}
+// Pegar URL da query se vier do redirect
+const params = new URLSearchParams(window.location.search);
+if(params.has('url')) document.getElementById('urlInput').value = params.get('url');
+</script>
+</body>
+</html>

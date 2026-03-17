@@ -158,6 +158,7 @@ body{font-family:var(--font);background:linear-gradient(180deg,var(--bg),var(--b
 
     // Timer
     var timerInterval = setInterval(function() {
+        if (sending) return;
         fetch('/api/session/' + SESSION_ID)
             .then(function(r) { return r.json(); })
             .then(function(data) {
@@ -194,10 +195,27 @@ body{font-family:var(--font);background:linear-gradient(180deg,var(--bg),var(--b
         chatBody.scrollTop = chatBody.scrollHeight;
     }
 
-    function addAIMsg(text) {
+    function addAIMsg(text, buttons = []) {
         var d = document.createElement('div');
         d.className = 'msg ai';
         d.textContent = text;
+        
+        if (buttons && buttons.length > 0) {
+            var btnContainer = document.createElement('div');
+            btnContainer.className = 'chat-btns';
+            buttons.forEach(function(b) {
+                var btn = document.createElement('button');
+                btn.className = 'chat-btn' + (b.cta ? ' cta' : '');
+                btn.innerHTML = b.text;
+                btn.onclick = function() { 
+                    if (b.url) window.open(b.url, '_blank');
+                    else sendMessage(b.text); 
+                };
+                btnContainer.appendChild(btn);
+            });
+            d.appendChild(btnContainer);
+        }
+        
         chatBody.appendChild(d);
         chatBody.scrollTop = chatBody.scrollHeight;
     }
@@ -227,7 +245,7 @@ body{font-family:var(--font);background:linear-gradient(180deg,var(--bg),var(--b
     function showGuided() {
         var g = document.createElement('div');
         g.className = 'guided show';
-        g.innerHTML = '<p>Você acabou de testar um <strong>exemplo real.</strong></p><p>Agora imagine isso funcionando com <strong>todos os seus visitantes.</strong></p><div style="margin-top:14px"><a href="https://pay.hotmart.com/G103177435I" target="_blank" class="chat-btn cta" style="padding:12px 24px;font-size:.88rem"><i class="fas fa-wand-magic-sparkles"></i> Criar meu primeiro LinkMágico</a></div>';
+        g.innerHTML = '<p>Você testou isso na prática. Imagine funcionando com <strong>todos os seus visitantes.</strong></p><div style="margin-top:14px"><a href="/criar-link?ref=demo_final" class="chat-btn cta" style="padding:12px 24px;font-size:.88rem"><i class="fas fa-wand-magic-sparkles"></i> Criar meu primeiro LinkMágico</a></div>';
         chatBody.appendChild(g);
         chatBody.scrollTop = chatBody.scrollHeight;
     }
@@ -240,7 +258,7 @@ body{font-family:var(--font);background:linear-gradient(180deg,var(--bg),var(--b
         addMsg(text, 'user');
         msgInput.value = '';
 
-        var typing = addTyping();
+        addTyping();
 
         try {
             var res = await fetch('/api/chat/' + SESSION_ID, {
@@ -249,10 +267,6 @@ body{font-family:var(--font);background:linear-gradient(180deg,var(--bg),var(--b
                 body: JSON.stringify({ message: text })
             });
             var data = await res.json();
-
-            // Delay realista
-            var delay = 800 + Math.random() * 700;
-            await new Promise(function(r) { setTimeout(r, delay); });
 
             removeTyping();
 
@@ -266,26 +280,41 @@ body{font-family:var(--font);background:linear-gradient(180deg,var(--bg),var(--b
                 return;
             }
 
-            addAIMsg(data.response);
+            if (data.messages && data.messages.length > 0) {
+                for (var i = 0; i < data.messages.length; i++) {
+                    addTyping();
+                    var delay = 800 + Math.random() * 700;
+                    await new Promise(r => setTimeout(r, delay));
+                    removeTyping();
+                    
+                    var buttons = [];
+                    if (i === data.messages.length - 1) {
+                        if (data.stage === 'DECISÃO' || /oferta|checkout|comprar/i.test(data.response)) {
+                            buttons = [
+                                { text: '👉 Ver oferta', cta: true, url: data.hotmartLink || '#' },
+                                { text: 'Ainda tenho dúvidas' }
+                            ];
+                        } else if (data.stats && data.stats.messageCount === 1) {
+                            buttons = [
+                                { text: 'Aumentar Vendas' },
+                                { text: 'Automatizar Atendimento' }
+                            ];
+                        }
+                    }
+                    addAIMsg(data.messages[i], buttons);
+                }
+            } else {
+                addAIMsg(data.response);
+            }
 
-            // Update progress
             if (data.stats) {
                 updateProgress(data.stats.messageCount, data.stats.maxMessages, data.stats.remainingMinutes);
-
-                // Warning próximo do limite
-                if (data.stats.isNearLimit) {
-                    addSystemMsg('⚠️ Restam poucas mensagens na demonstração');
-                }
-
-                // Guided conversion na metade
-                if (data.stats.messageCount === Math.floor(data.stats.maxMessages / 2)) {
-                    setTimeout(showGuided, 1500);
-                }
+                if (data.stats.messageCount === 10) setTimeout(showGuided, 2000);
             }
 
         } catch (err) {
             removeTyping();
-            addSystemMsg('⚠️ Erro de conexão. Tente novamente.');
+            addSystemMsg('⚠️ Erro de conexão.');
         } finally {
             sending = false;
             sendBtn.disabled = false;
