@@ -33,7 +33,7 @@ body{font-family:var(--font);background:linear-gradient(180deg,var(--bg),var(--b
     <div class="input-wrap">
         <input type="url" id="urlInput" class="input" placeholder="Cole sua URL aqui (ex: sua-loja.com)" autocomplete="off">
     </div>
-    <button class="btn" onclick="generate()">Criar meu LinkMágico</button>
+    <button class="btn" id="criarBtn">Criar meu LinkMágico</button>
     <p class="micro">Sem cartão • Teste em segundos</p>
 </div>
 
@@ -43,6 +43,7 @@ function generate() {
     if(!url) return document.getElementById('urlInput').focus();
     window.location.href = 'https://pay.hotmart.com/G103177435I?ref=criar-link&src=' + encodeURIComponent(url);
 }
+document.getElementById('criarBtn').addEventListener('click', generate);
 // Pegar URL da query se vier do redirect
 const params = new URLSearchParams(window.location.search);
 if(params.has('url')) document.getElementById('urlInput').value = params.get('url');
