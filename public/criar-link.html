@@ -41,7 +41,7 @@ body{font-family:var(--font);background:linear-gradient(180deg,var(--bg),var(--b
 function generate() {
     const url = document.getElementById('urlInput').value.trim();
     if(!url) return document.getElementById('urlInput').focus();
-    window.location.href = '/?url=' + encodeURIComponent(url);
+    window.location.href = 'https://pay.hotmart.com/G103177435I?ref=criar-link&src=' + encodeURIComponent(url);
 }
 // Pegar URL da query se vier do redirect
 const params = new URLSearchParams(window.location.search);
