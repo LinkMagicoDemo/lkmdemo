@@ -29,112 +29,56 @@ const PROVIDERS = [
     }
 ];
 
-// ===== DETECÇÃO DO TIPO DE LINK (CAMADA 2) =====
+// ===== DETECÇÃO DO TIPO DE LINK =====
 function detectLinkType(url, content) {
     const u = (url || '').toLowerCase();
     const c = (content || '').toLowerCase();
-
-    // Afiliado — plataformas conhecidas
     if (/hotmart|monetizze|eduzz|kiwify|braip|clickbank|digistore|pay\.|checkout/.test(u)) return 'affiliate';
     if (/afiliado|comiss[aã]o|link de afiliado/.test(c)) return 'affiliate';
-
-    // Produto — e-commerce, compra direta
-    if (/comprar|compre|adicionar ao carrinho|pre[çc]o|oferta|produto|loja|shop|store|mercadolivre|shopee|amazon/.test(c)) return 'product';
+    if (/comprar|compre|adicionar ao carrinho|pre[çc]o|oferta|produto|loja|shop|store/.test(c)) return 'product';
     if (/\.com\.br\/produto|\/product|\/shop|\/loja/.test(u)) return 'product';
-
-    // Serviço — consultoria, freelancer, agência
-    if (/consultoria|servi[çc]o|contrat|or[çc]amento|freelanc|ag[êe]ncia|atendimento|agende|agenda/.test(c)) return 'service';
-    if (/consultoria|servico|freelanc|agencia/.test(u)) return 'service';
-
+    if (/consultoria|servi[çc]o|contrat|or[çc]amento|freelanc|ag[êe]ncia|atendimento/.test(c)) return 'service';
     return 'generic';
-}
-
-// ===== ARGUMENTOS POR TIPO DE LINK (CAMADA 2 — ADAPTAÇÃO) =====
-function getTypeArguments(linkType) {
-    const args = {
-        product: {
-            focus: 'conversão direta e decisão de compra',
-            pain: 'O que normalmente impede a venda é quando o visitante tem dúvida sobre o produto e não encontra resposta na hora.',
-            objection: 'Quem chega na sua página quer comprar, mas precisa de segurança. A conversa dá essa segurança.',
-            context: 'páginas de produto e e-commerce'
-        },
-        service: {
-            focus: 'confiança e entendimento do serviço',
-            pain: 'Quem contrata serviço geralmente precisa entender melhor antes de decidir — e é aí que a conversa faz diferença.',
-            objection: 'No serviço, a confiança é tudo. O visitante precisa sentir que está no lugar certo antes de contratar.',
-            context: 'serviços e consultorias'
-        },
-        affiliate: {
-            focus: 'influência na decisão sem controlar a página',
-            pain: 'Como você não controla a página, a conversa vira o principal ponto de influência na decisão.',
-            objection: 'Afiliado que depende só do link frio perde pra quem cria uma camada de conversa antes da compra.',
-            context: 'links de afiliado'
-        },
-        generic: {
-            focus: 'conversão e engajamento de visitantes',
-            pain: 'A maioria dos visitantes sai sem comprar porque teve uma dúvida e ninguém respondeu a tempo.',
-            objection: 'O visitante já demonstrou interesse ao clicar. Sem conversa, esse interesse morre.',
-            context: 'qualquer tipo de link'
-        }
-    };
-    return args[linkType] || args.generic;
 }
 
 // ===== ANÁLISE DE EMOÇÕES =====
 function analyzeEmotion(message) {
     const msg = message.toLowerCase();
     let primary = 'neutro';
-    let secondary = null;
-    let sarcasm = false;
+    let hesitating = false;
     let urgency = false;
     let intentions = [];
-    let hesitating = false;
 
-    // Emoções
-    if (/raiva|irritad|absurd|péssim|lixo|horrível|porcaria/i.test(msg)) primary = 'frustração';
+    if (/raiva|irritad|absurd|péssim|lixo|horrível/i.test(msg)) primary = 'frustração';
     else if (/medo|receio|cuidado|perig|arrisca|confia/i.test(msg)) { primary = 'insegurança'; hesitating = true; }
-    else if (/feliz|ótimo|maravilh|incríve|perfeito|amo|adore/i.test(msg)) primary = 'entusiasmo';
-    else if (/triste|decepcion|frustr|chatea/i.test(msg)) primary = 'decepção';
+    else if (/feliz|ótimo|maravilh|incríve|perfeito|amo/i.test(msg)) primary = 'entusiasmo';
     else if (/ansios|urgent|rápid|agora|preciso já/i.test(msg)) { primary = 'ansiedade'; urgency = true; }
-    else if (/curios|como|funciona|explica|quero saber|entender/i.test(msg)) primary = 'curiosidade';
-    else if (/duvid|será|serque|não sei|incert|talvez|depende|preciso pensar|vou pensar/i.test(msg)) { primary = 'dúvida'; hesitating = true; }
+    else if (/curios|como|funciona|explica|quero saber/i.test(msg)) primary = 'curiosidade';
+    else if (/duvid|será|não sei|incert|talvez|depende|preciso pensar|vou pensar|sei lá/i.test(msg)) { primary = 'dúvida'; hesitating = true; }
 
-    // Sarcasmo
-    if (/né\?|tá bom|sei|claro|imagina|aham/i.test(msg) && /!|\?{2,}/i.test(msg)) sarcasm = true;
-    if (/nossa que|super |muito bom /i.test(msg) && msg.length < 30) sarcasm = true;
-
-    // Urgência
+    if (/não sei|talvez|preciso pensar|vou pensar|ainda não|não tenho certeza|será que|sei lá/i.test(msg)) hesitating = true;
     if (/urgent|agora|hoje|rápid|pressa|imediato/i.test(msg)) urgency = true;
 
-    // Hesitação
-    if (/não sei|talvez|preciso pensar|vou pensar|ainda não|não tenho certeza|será que|sei lá/i.test(msg)) hesitating = true;
-
-    // Intenções múltiplas
     if (/preço|valor|custo|custa|quanto|investimento|parcela/i.test(msg)) intentions.push('preço');
     if (/funciona|como|usa|configura|faz/i.test(msg)) intentions.push('funcionamento');
-    if (/garant|devolu|reembols|cancel|arrepend/i.test(msg)) intentions.push('garantia');
-    if (/result|depoiment|prova|funciona mesmo|alguém/i.test(msg)) intentions.push('prova_social');
+    if (/garant|devolu|reembols|cancel/i.test(msg)) intentions.push('garantia');
+    if (/result|depoiment|prova|funciona mesmo/i.test(msg)) intentions.push('prova_social');
     if (/comprar|adquirir|assinar|ativar|quero|pegar/i.test(msg)) intentions.push('compra');
-    if (/suport|ajuda|problema|erro|bug/i.test(msg)) intentions.push('suporte');
-    if (/whatsapp|whats|zap|telefone|ligar|contato/i.test(msg)) intentions.push('contato');
-    if (/bônus|brinde|extra|brindes/i.test(msg)) intentions.push('bonus');
-
     if (intentions.length === 0) intentions.push('informação_geral');
 
-    return { primary, secondary, sarcasm, urgency, intentions, hesitating };
+    return { primary, hesitating, urgency, intentions };
 }
 
-// ===== ANÁLISE DE ESTÁGIO DE COMPRA =====
+// ===== ESTÁGIO DE COMPRA =====
 function analyzeJourneyStage(message) {
     const msg = message.toLowerCase();
-
-    if (/comprar|adquirir|ativar|assinar|pegar|quero|fechar|link.*compra|checkout/i.test(msg)) return 'DECISÃO';
-    if (/preço|valor|custo|parcela|desconto|promoção|oferta|plano/i.test(msg)) return 'NEGOCIAÇÃO';
-    if (/funciona|como|usa|configura|resultado|depoimento|prova|garantia|suporte/i.test(msg)) return 'CONSIDERAÇÃO';
+    if (/comprar|adquirir|ativar|assinar|quero|fechar|checkout/i.test(msg)) return 'DECISÃO';
+    if (/preço|valor|custo|parcela|desconto|promoção/i.test(msg)) return 'NEGOCIAÇÃO';
+    if (/funciona|como|usa|configura|resultado|garantia/i.test(msg)) return 'CONSIDERAÇÃO';
     return 'DESCOBERTA';
 }
 
-// ===== PRESSÃO PROGRESSIVA (MÓDULO 5) =====
+// ===== PRESSÃO PROGRESSIVA =====
 function getPressureLevel(messageCount, hesitating) {
     if (messageCount >= 6) return 4;
     if (messageCount >= 4 || hesitating) return 3;
@@ -142,131 +86,94 @@ function getPressureLevel(messageCount, hesitating) {
     return 1;
 }
 
-function getPressureDirective(level) {
-    switch (level) {
-        case 1:
-            return `NÍVEL 1 — LEVE: Faça perguntas, entenda o cenário. Não pressione. Só guie.`;
-        case 2:
-            return `NÍVEL 2 — DIREÇÃO: Explique e guie. Mostre o cenário "sem vs com". Conduza para a decisão com naturalidade.`;
-        case 3:
-            return `NÍVEL 3 — DECISÃO: Confronte levemente. Use a prova: "Você já viu funcionando. A questão é: quantas vendas você está perdendo enquanto decide?" Sempre conecte com decisão.`;
-        case 4:
-            return `NÍVEL 4 — FECHAMENTO: Urgência real. Use: "Você já viu funcionando. Já entendeu o impacto. A única coisa que ainda não aconteceu é você ativar. Ou você continua perdendo essas oportunidades ou coloca isso pra rodar agora." Ofereça o CTA final.`;
-        default:
-            return '';
-    }
-}
-
-// ===== TRATAMENTO DE OBJEÇÕES =====
-function getObjectionHandling(intentions) {
-    const handlers = [];
-
-    if (intentions.includes('funcionamento')) {
-        handlers.push(`SE PERGUNTAREM "COMO FUNCIONA": "Você cola um link e a IA usa esse conteúdo para conversar e conduzir automaticamente. Mas o mais importante é o que isso gera: mais decisões acontecendo." NUNCA explique demais.`);
-    }
-    if (intentions.includes('prova_social')) {
-        handlers.push(`SE PEDIREM PROVA: "Funciona porque resolve o principal problema: o visitante com dúvida sem resposta. Quando a resposta vem na hora, a chance de conversão aumenta muito." Depois pergunte: "Isso faz sentido pra você?"`);
-    }
-    if (intentions.includes('preço')) {
-        handlers.push(`SE PERGUNTAREM PREÇO: "Antes do valor, me diz: se isso já começasse a recuperar vendas que você perde hoje, faria sentido implementar agora?" NUNCA entregue valor direto sem pré-fechamento.`);
-    }
-    if (intentions.includes('garantia')) {
-        handlers.push(`SE PERGUNTAREM GARANTIA: "Tem garantia de 7 dias. Se não funcionar, devolve. Risco zero. Mas pela conversa, acho que você já entendeu que funciona." Conduza para o CTA.`);
-    }
-
-    return handlers.join('\n');
-}
-
-// ===== CONSTRUIR PROMPT SUPERINTELIGENTE =====
+// ===== CONSTRUIR SYSTEM PROMPT — 100% CLOSER =====
 function buildSystemPrompt(pageData, emotion, stage, messageCount) {
-    const contactInfo = [];
-    if (pageData.contacts) {
-        if (pageData.contacts.telefone?.length) contactInfo.push(`Telefones: ${pageData.contacts.telefone.join(', ')}`);
-        if (pageData.contacts.whatsapp?.length) contactInfo.push(`WhatsApp: ${pageData.contacts.whatsapp.join(', ')}`);
-        if (pageData.contacts.email?.length) contactInfo.push(`Emails: ${pageData.contacts.email.join(', ')}`);
-        if (pageData.contacts.site?.length) contactInfo.push(`Site: ${pageData.contacts.site[0]}`);
+    const linkType = detectLinkType(pageData.url, pageData.cleanText);
+    const pressureLevel = getPressureLevel(messageCount, emotion.hesitating);
+
+    const priceInfo = pageData.prices?.length ? `PREÇOS: ${pageData.prices.join(', ')}` : '';
+
+    // Loop de prova — ativar quando hesitando
+    const proofLoop = emotion.hesitating ? `
+🔁 LOOP DE PROVA (USAR AGORA):
+Insira naturalmente: "Aliás, volta um segundo naquela conversa que você viu. Aquilo ali é exatamente o momento onde a venda começa. Não foi pressão. Foi resposta na hora certa."
+Depois reconduza para decisão binária.` : '';
+
+    // Diretiva por nível de pressão
+    let pressureDirective = '';
+    switch (pressureLevel) {
+        case 1:
+            pressureDirective = 'NÍVEL 1 — ABERTURA: Guie. Pergunte. Não pressione ainda.';
+            break;
+        case 2:
+            pressureDirective = 'NÍVEL 2 — DIREÇÃO: Mostre cenário "sem vs com". Conduza para decisão.';
+            break;
+        case 3:
+            pressureDirective = `NÍVEL 3 — DECISÃO: Use exatamente:
+"Então você já entendeu tudo. A questão agora não é mais 'se funciona'. É quantas pessoas você está perdendo sem isso. Faz sentido continuar assim?"`;
+            break;
+        case 4:
+            pressureDirective = `NÍVEL 4 — FECHAMENTO FORTE: Use exatamente:
+"Você já viu funcionando. Já entendeu o impacto. E sabe que isso se aplica ao seu caso. A única coisa que ainda não aconteceu é você ativar. Então vamos simplificar: ou você continua perdendo essas oportunidades ou coloca isso pra rodar agora."`;
+            break;
     }
 
-    const priceInfo = pageData.prices?.length ? `💰 PREÇOS DETECTADOS: ${pageData.prices.join(', ')}` : '';
+    return `Você é um CLOSER. Não é suporte. Não é assistente. Você FECHA vendas.
 
-    // CAMADA 2 — Detecção e adaptação por tipo
-    const linkType = detectLinkType(pageData.url, pageData.cleanText);
-    const typeArgs = getTypeArguments(linkType);
+===== REGRA PRINCIPAL (NÃO NEGOCIÁVEL) =====
+A IA NÃO RESPONDE. Ela CONDUZ DECISÃO.
+Toda resposta DEVE terminar em: escolha, confronto leve, ou avanço no funil.
 
-    // MÓDULO 5 — Pressão progressiva
-    const pressureLevel = getPressureLevel(messageCount, emotion.hesitating);
-    const pressureDirective = getPressureDirective(pressureLevel);
+===== REGRAS INVIOLÁVEIS =====
+1. MÁXIMO 3 LINHAS por resposta. Sem exceção.
+2. SEMPRE terminar com decisão binária (sim/não, faz sentido/não faz).
+3. SEMPRE trazer consequência (perda de venda, oportunidade perdida).
+4. NUNCA ser passivo. NUNCA tom de suporte.
+5. NUNCA pular para link sem pré-fechamento.
+6. Se explicar algo, 2 linhas no máximo e redirecionar para decisão.
 
-    // Tratamento de objeções específicas
-    const objectionHandling = getObjectionHandling(emotion.intentions);
+===== FRASES 100% PROIBIDAS =====
+NUNCA use NENHUMA destas frases ou variações:
+- "isso é normal"
+- "muitas pessoas sentem isso"  
+- "posso te explicar"
+- "fico feliz em ajudar"
+- "claro, vou te explicar"
+- "entendo sua preocupação"
+- "é uma ótima pergunta"
+Qualquer tom empático passivo está PROIBIDO.
 
-    // Loop de reforço (a cada 2-3 mensagens)
-    const reinforcementLoop = (messageCount >= 2 && messageCount % 2 === 0)
-        ? `🔁 LOOP DE REFORÇO (USAR AGORA): Insira naturalmente uma variação de: "O que você acabou de ver é exatamente o que seus visitantes experimentam antes de decidir."`
-        : '';
-
-    // Referência à prova integrada (máx 1x a cada 3 interações, só se hesitando)
-    const proofReference = (emotion.hesitating && messageCount >= 3 && messageCount % 3 === 0)
-        ? `🎯 PROVA INTEGRADA (USAR AGORA): "Você viu aquela conversa aqui na página? Aquilo ali é exatamente o que acontece quando alguém recebe resposta no momento certo. Percebe como a decisão acontece naturalmente?" Conecte com decisão.`
-        : '';
-
-    return `Você é um VENDEDOR CONSULTIVO de alta conversão. NÃO é suporte técnico. NÃO é assistente genérico. Você é um CLOSER.
-
-===== CAMADA 1 — ESTRUTURA FIXA DE FECHAMENTO =====
-
-🎯 CONTEXTO OBRIGATÓRIO:
-- O usuário ACABOU de testar a ferramenta (Bloco 2 da landing page)
-- Ele JÁ VIU a IA funcionando na prática
-- Ele JÁ TEM entendimento básico
-- NUNCA aja como se estivesse explicando do zero
-- NUNCA aja como suporte técnico
-- SEMPRE conduza para decisão
-
-🔥 PRESSÃO ATUAL:
+===== NÍVEL DE PRESSÃO ATUAL: ${pressureLevel}/4 =====
 ${pressureDirective}
 
-📊 ESTADO:
-- Emoção: ${emotion.primary.toUpperCase()}
-- Jornada: ${stage}
-- Hesitação: ${emotion.hesitating ? 'SIM — aplicar confronto leve' : 'NÃO'}
-- Interações: ${messageCount}
-- Nível pressão: ${pressureLevel}/4
+===== TRATAMENTO DE OBJEÇÕES =====
 
-===== CAMADA 2 — ADAPTAÇÃO POR TIPO =====
+SE USUÁRIO DIZ "não sei" ou hesita:
+"Você já viu funcionando. Então não é falta de clareza. É só uma decisão agora: isso faz sentido pro seu cenário ou não?"
 
-📎 TIPO DE LINK DETECTADO: ${linkType.toUpperCase()}
-🎯 FOCO: ${typeArgs.focus}
-💬 ARGUMENTO PRINCIPAL: "${typeArgs.pain}"
-🛡️ CONTRA-OBJEÇÃO: "${typeArgs.objection}"
-📍 CONTEXTO: ${typeArgs.context}
+SE USUÁRIO DIZ "vou pensar":
+"Pensar não resolve o problema. Porque enquanto você pensa, os visitantes continuam chegando, tendo dúvida e indo embora. A pergunta real é: faz sentido continuar deixando isso acontecer?"
 
-===== DADOS DA PÁGINA =====
-Título: ${pageData.title || 'Página'}
-${priceInfo}
+SE PERGUNTAM "como funciona":
+"Cola um link, a IA usa o conteúdo pra conversar e conduzir. Mas o ponto é: você quer isso rodando ou não?" (2 linhas, redirecionar)
+
+SE PERGUNTAM "preço":
+"Antes do valor: se isso já começasse a recuperar vendas que você perde hoje, faria sentido ativar agora?" (pré-fechamento obrigatório)
+
+SE PERGUNTAM "garantia":
+"7 dias. Se não funcionar, devolve. Risco zero. Mas pela conversa, você já viu que funciona. Quer ativar?"
+
+===== CONTEXTO =====
+Página: ${pageData.title || 'Página'}
 URL: ${pageData.url}
-${contactInfo.length ? 'Contatos: ' + contactInfo.join(' | ') : ''}
+${priceInfo}
+Tipo: ${linkType.toUpperCase()}
+Emoção: ${emotion.primary.toUpperCase()}
+Hesitação: ${emotion.hesitating ? 'SIM' : 'NÃO'}
+Jornada: ${stage}
+Interações: ${messageCount}
 
-===== REGRAS DE COMPORTAMENTO (INVIOLÁVEIS) =====
-
-1. MÁXIMO 3 LINHAS por resposta. Quebre em múltiplos balões se necessário.
-2. SEMPRE termine com pergunta OU decisão. NUNCA termine passivamente.
-3. NUNCA seja passivo. Você é vendedor, não suporte.
-4. NUNCA use linguagem genérica. Seja direto e específico.
-5. NUNCA pule para link sem pré-fechamento. SEMPRE antes pergunte: "Pelo que você me falou, faz sentido colocar isso no seu negócio agora?"
-6. NUNCA explique demais. Se o usuário pergunta "como funciona", responda em 2 linhas e redirecione para decisão.
-7. NUNCA quebre o fluxo de decisão.
-8. SE detectar interesse em compra (INTENÇÕES: ${emotion.intentions.join(',')}), faça pré-fechamento antes de qualquer link.
-
-===== FLUXO DE DECISÃO =====
-
-SE usuário disse "SIM" ou concordou:
-"Então você já entendeu o ponto. A maioria perde vendas porque o visitante chega, tem dúvida e vai embora. O que você viu resolve isso. A pergunta é: você quer isso funcionando no seu link ou não?"
-
-SE usuário disse "TALVEZ" ou está indeciso:
-"Isso transforma visitantes indecisos em pessoas sendo guiadas até a decisão. Foi exatamente o que você viu. Isso se aplica ao seu caso?"
-
-SE usuário tem objeção:
-${objectionHandling || 'Trate a objeção em 1-2 linhas e reconduza para decisão.'}
+${proofLoop}
 
 ===== PRÉ-FECHAMENTO (OBRIGATÓRIO ANTES DE CTA) =====
 "Pelo que você me falou, isso resolve exatamente o seu cenário. Faz sentido colocar isso no seu negócio agora?"
@@ -274,16 +181,12 @@ ${objectionHandling || 'Trate a objeção em 1-2 linhas e reconduza para decisã
 ===== FECHAMENTO =====
 "Então vamos direto. Você só precisa criar seu primeiro LinkMágico e já começa a usar."
 
-${reinforcementLoop}
-${proofReference}
-
-LEMBRE-SE: Você é vendedor. Conduza. Pressione com elegância. Feche.`;
+LEMBRE-SE: Você é closer. Conduz. Pressiona com elegância. Fecha. Sem exceção.`;
 }
 
 // ===== DIVIDIR RESPOSTAS =====
 function splitResponse(text) {
     if (!text) return [];
-    // Dividir por parágrafos ou pontos seguidos de quebra
     return text.split(/\n\n|\n/).filter(t => t.trim().length > 0);
 }
 
@@ -291,24 +194,19 @@ function splitResponse(text) {
 async function callProvider(provider, messages) {
     const apiKey = process.env[provider.keyEnv];
     if (!apiKey || apiKey.includes('sua-chave')) return null;
-
     const model = process.env[provider.modelEnv] || provider.defaultModel;
-
     try {
         const headers = {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${apiKey}`,
             ...(provider.extraHeaders || {})
         };
-
         const response = await axios.post(provider.url, {
-            model,
-            messages,
+            model, messages,
             max_tokens: provider.maxTokens,
             temperature: 0.7,
             top_p: 0.9
         }, { headers, timeout: 30000 });
-
         const content = response.data?.choices?.[0]?.message?.content;
         if (content && content.trim()) {
             console.log(`✅ [${provider.name}] Resposta gerada (${model})`);
@@ -326,43 +224,35 @@ async function generateResponse(userMessage, pageData, conversationHistory = [],
     if (!userMessage || !String(userMessage).trim()) {
         return 'Desculpe, não entendi sua mensagem. Poderia reformular?';
     }
-
     const cleanMessage = String(userMessage).replace(/<[^>]*>/g, '').trim();
     const emotion = analyzeEmotion(cleanMessage);
     const stage = analyzeJourneyStage(cleanMessage);
     const systemPrompt = buildSystemPrompt(pageData, emotion, stage, messageCount);
-
-    // Detectar tipo de link para retorno ao frontend
     const linkType = detectLinkType(pageData.url, pageData.cleanText);
+    const pressureLevel = getPressureLevel(messageCount, emotion.hesitating);
 
     const messages = [
         { role: 'system', content: systemPrompt },
-        ...conversationHistory.slice(-10), // Últimas 10 mensagens
+        ...conversationHistory.slice(-10),
         { role: 'user', content: cleanMessage }
     ];
 
-    // Fallback chain: Groq → OpenRouter → OpenAI
     for (const provider of PROVIDERS) {
         const response = await callProvider(provider, messages);
         if (response) {
-            return { 
-                text: response, 
+            return {
+                text: response,
                 messages: splitResponse(response),
-                provider: provider.name, 
-                emotion, 
-                stage,
-                linkType,
-                pressureLevel: getPressureLevel(messageCount, emotion.hesitating)
+                provider: provider.name,
+                emotion, stage, linkType, pressureLevel
             };
         }
     }
 
-    // Fallback final — resposta genérica contextualizada
     console.error('❌ Todos os provedores falharam');
     const fallback = pageData.title
         ? `Desculpe, estou com uma instabilidade momentânea. Sobre "${pageData.title}", posso te ajudar assim que voltar ao normal. Tente novamente em alguns segundos!`
         : 'Desculpe, estou com uma instabilidade momentânea. Tente novamente em alguns segundos!';
-
     return { text: fallback, provider: 'fallback', emotion, stage, linkType: 'generic', pressureLevel: 1 };
 }
 

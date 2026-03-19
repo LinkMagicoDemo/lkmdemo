@@ -34,7 +34,7 @@ body{font-family:var(--font);background:linear-gradient(180deg,var(--bg) 0%,var(
 .brand-sub{font-size:.6rem;text-transform:uppercase;letter-spacing:4px;color:var(--primary);font-weight:600;margin-bottom:40px}
 
 /* ===== HEADLINE ===== */
-.headline{font-size:clamp(1.8rem,4.5vw,3rem);font-weight:900;color:var(--text-bright);line-height:1.15;margin-bottom:16px}
+.headline{font-size:clamp(1.8rem,4.5vw,3rem);font-weight:900;color:var(--text-bright);line-height:1.15;margin-bottom:16px;overflow-wrap:break-word;word-wrap:break-word}
 .headline .accent{background:linear-gradient(90deg,var(--primary),var(--glow),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .sub{font-size:1.05rem;color:var(--text-muted);margin-bottom:40px;max-width:520px;line-height:1.7}
 
@@ -86,7 +86,7 @@ body{font-family:var(--font);background:linear-gradient(180deg,var(--bg) 0%,var(
 .footer a{color:var(--primary);text-decoration:none}
 
 @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-@media(max-width:480px){.gen-input-wrap{flex-direction:column}.gen-card{padding:24px 20px}}
+@media(max-width:480px){.gen-input-wrap{flex-direction:column}.gen-card{padding:24px 20px}.headline{font-size:clamp(1.3rem,5vw,1.8rem)}.sub{font-size:.92rem}.container{padding:0 16px}}
 </style>
 </head>
 <body>

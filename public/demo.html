@@ -12,10 +12,9 @@
 :root{--bg:#07142B;--bg-dark:#020617;--surface:rgba(10,20,40,0.7);--primary:#1E6BFF;--glow:#7B61FF;--green:#2BE66A;--text:#c8d6e5;--text-bright:#f0f4ff;--text-muted:#6b7c93;--font:'Inter',system-ui,sans-serif}
 html,body{height:100%;overflow:hidden}
 body{font-family:var(--font);background:linear-gradient(180deg,var(--bg),var(--bg-dark));color:var(--text)}
-
 .app{display:flex;flex-direction:column;height:100vh;height:100dvh;max-width:520px;margin:0 auto;position:relative}
 
-/* ===== HEADER ===== */
+/* HEADER */
 .header{padding:14px 18px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(100,150,255,0.15);background:linear-gradient(135deg,rgba(30,107,255,0.12),rgba(123,97,255,0.06));backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);flex-shrink:0;z-index:10}
 .h-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--glow));display:flex;align-items:center;justify-content:center;font-size:.8rem;color:#fff;font-weight:700;box-shadow:0 0 15px rgba(30,107,255,0.4);flex-shrink:0}
 .h-info{flex:1;min-width:0}
@@ -26,44 +25,39 @@ body{font-family:var(--font);background:linear-gradient(180deg,var(--bg),var(--b
 .h-page{font-size:.65rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px}
 .h-close{color:var(--text-muted);text-decoration:none;font-size:1.1rem;padding:8px;flex-shrink:0}
 
-/* ===== PROGRESS BAR ===== */
+/* PROGRESS */
 .progress{padding:6px 18px;background:rgba(5,10,25,0.6);border-bottom:1px solid rgba(100,150,255,0.08);flex-shrink:0;display:flex;align-items:center;gap:10px}
 .progress-bar{flex:1;height:3px;border-radius:2px;background:rgba(100,150,255,0.1);overflow:hidden}
 .progress-fill{height:100%;background:linear-gradient(90deg,var(--green),#00FF94);border-radius:2px;transition:width .5s ease;width:0%}
 .progress-text{font-size:.62rem;color:var(--text-muted);white-space:nowrap}
 .progress-time{font-size:.62rem;color:var(--text-muted);white-space:nowrap}
 
-/* ===== CHAT BODY ===== */
+/* CHAT */
 .chat-body{flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:8px;scroll-behavior:smooth;-webkit-overflow-scrolling:touch}
-
-/* ===== MESSAGES ===== */
 @keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .msg{max-width:85%;padding:12px 16px;border-radius:18px;font-size:.88rem;line-height:1.65;animation:msgIn .3s ease;white-space:pre-line;word-wrap:break-word;overflow-wrap:break-word}
 .msg.ai{background:rgba(30,60,120,0.5);border:1px solid rgba(100,150,255,0.12);color:var(--text);align-self:flex-start;border-bottom-left-radius:4px}
 .msg.user{background:rgba(255,255,255,0.08);color:var(--text-bright);align-self:flex-end;border-bottom-right-radius:4px}
 .msg.system{background:rgba(43,230,106,0.06);border:1px solid rgba(43,230,106,0.15);color:var(--text-muted);font-size:.78rem;text-align:center;align-self:center;border-radius:12px;max-width:95%}
 
-/* ===== TYPING ===== */
+/* TYPING */
 @keyframes typeDot{0%,60%,100%{opacity:.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-4px)}}
 .typing{align-self:flex-start;padding:12px 18px;background:rgba(30,60,120,0.35);border:1px solid rgba(100,150,255,0.08);border-radius:18px;border-bottom-left-radius:4px;display:flex;gap:5px}
 .typing span{width:7px;height:7px;border-radius:50%;background:var(--primary);animation:typeDot 1.2s infinite}
 .typing span:nth-child(2){animation-delay:.2s}
 .typing span:nth-child(3){animation-delay:.4s}
 
-/* ===== IN-CHAT BUTTONS ===== */
+/* BUTTONS */
 .chat-btns{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 .chat-btn{padding:8px 14px;border-radius:20px;border:1px solid rgba(30,107,255,0.3);background:rgba(30,107,255,0.1);color:var(--primary);font-size:.78rem;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .2s;line-height:1.4;text-align:center}
 .chat-btn:hover{background:rgba(30,107,255,0.25);border-color:var(--primary);box-shadow:0 0 10px rgba(30,107,255,0.2)}
 .chat-btn:active{transform:scale(0.96)}
 .chat-btn.cta{background:linear-gradient(90deg,var(--green),#00FF94);color:#0a2e14;border:none;font-weight:700;box-shadow:0 0 15px rgba(43,230,106,0.3)}
 .chat-btn.cta:hover{box-shadow:0 0 25px rgba(43,230,106,0.5);transform:translateY(-1px)}
-.chat-btn.cta:active{transform:scale(0.96)}
-
-/* ===== STANDALONE BUTTONS (outside messages) ===== */
 .standalone-btns{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:8px 0;animation:msgIn .4s ease}
 .standalone-btns .chat-btn{padding:10px 18px;font-size:.82rem}
 
-/* ===== INPUT ===== */
+/* INPUT */
 .input-area{padding:12px 18px;border-top:1px solid rgba(100,150,255,0.1);background:rgba(5,10,25,0.8);flex-shrink:0;display:flex;gap:10px;align-items:center}
 .input-field{flex:1;padding:12px 16px;border-radius:24px;border:1px solid rgba(100,150,255,0.15);background:rgba(10,20,40,0.6);color:var(--text-bright);font-family:var(--font);font-size:.88rem;outline:none;transition:border-color .2s;min-width:0}
 .input-field:focus{border-color:var(--primary)}
@@ -72,7 +66,7 @@ body{font-family:var(--font);background:linear-gradient(180deg,var(--bg),var(--b
 .send-btn:hover{transform:scale(1.08);box-shadow:0 0 20px rgba(30,107,255,0.4)}
 .send-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
 
-/* ===== LIMIT OVERLAY ===== */
+/* LIMIT */
 .limit-overlay{display:none;position:absolute;inset:0;background:rgba(2,6,23,0.95);backdrop-filter:blur(10px);z-index:100;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px;animation:msgIn .5s ease}
 .limit-overlay.show{display:flex}
 .limit-icon{font-size:3rem;color:var(--primary);margin-bottom:20px}
@@ -82,74 +76,30 @@ body{font-family:var(--font);background:linear-gradient(180deg,var(--bg),var(--b
 .limit-cta:hover{transform:translateY(-3px);box-shadow:0 0 50px rgba(43,230,106,0.6)}
 .limit-sub{font-size:.72rem;color:var(--text-muted);margin-top:12px}
 
-/* ===== GUIDED CONVERSION ===== */
-.guided{display:none;padding:20px;margin:8px 0;border-radius:16px;background:linear-gradient(135deg,rgba(30,107,255,0.08),rgba(123,97,255,0.06));border:1px solid rgba(30,107,255,0.15);text-align:center}
-.guided.show{display:block;animation:msgIn .5s ease}
-.guided p{font-size:.88rem;color:var(--text);line-height:1.6;margin-bottom:8px}
-.guided strong{color:var(--text-bright)}
-
-/* ===== RESPONSIVE — TABLET ===== */
-@media(min-width:521px) and (max-width:1024px){
-    .app{max-width:600px}
-    .msg{max-width:80%;font-size:.9rem}
-    .chat-btn{font-size:.82rem;padding:10px 16px}
-    .standalone-btns .chat-btn{padding:12px 22px;font-size:.85rem}
-}
-
-/* ===== RESPONSIVE — MOBILE SMALL ===== */
-@media(max-width:380px){
-    .header{padding:10px 14px;gap:8px}
-    .h-avatar{width:32px;height:32px;font-size:.7rem}
-    .h-name{font-size:.82rem}
-    .h-page{max-width:100px}
-    .chat-body{padding:12px 14px;gap:6px}
-    .msg{padding:10px 13px;font-size:.82rem;max-width:90%}
-    .chat-btn{padding:7px 12px;font-size:.72rem}
-    .standalone-btns .chat-btn{padding:9px 16px;font-size:.78rem}
-    .input-area{padding:10px 14px;gap:8px}
-    .input-field{padding:10px 14px;font-size:.82rem}
-    .send-btn{width:38px;height:38px;font-size:.9rem}
-    .limit-title{font-size:1.1rem}
-    .limit-text{font-size:.85rem}
-    .limit-cta{padding:14px 28px;font-size:.95rem}
-}
-
-/* ===== RESPONSIVE — FIX iOS SAFE AREA ===== */
-@supports(padding-bottom: env(safe-area-inset-bottom)){
-    .input-area{padding-bottom:calc(12px + env(safe-area-inset-bottom))}
-}
+/* RESPONSIVE */
+@media(min-width:521px) and (max-width:1024px){.app{max-width:600px}.msg{max-width:80%;font-size:.9rem}.standalone-btns .chat-btn{padding:12px 22px;font-size:.85rem}}
+@media(max-width:380px){.header{padding:10px 14px;gap:8px}.h-avatar{width:32px;height:32px;font-size:.7rem}.chat-body{padding:12px 14px;gap:6px}.msg{padding:10px 13px;font-size:.82rem;max-width:90%}.chat-btn{padding:7px 12px;font-size:.72rem}.standalone-btns .chat-btn{padding:9px 16px;font-size:.78rem}.input-area{padding:10px 14px;gap:8px}.input-field{padding:10px 14px;font-size:.82rem}.send-btn{width:38px;height:38px;font-size:.9rem}}
+@supports(padding-bottom:env(safe-area-inset-bottom)){.input-area{padding-bottom:calc(12px + env(safe-area-inset-bottom))}}
 </style>
 </head>
 <body>
 <div class="app" id="app">
-<!-- Header -->
 <div class="header">
 <div class="h-avatar">IA</div>
-<div class="h-info">
-<div class="h-name">Assistente IA</div>
-<div class="h-status">Online</div>
-</div>
+<div class="h-info"><div class="h-name">Assistente IA</div><div class="h-status">Online</div></div>
 <div class="h-page" id="pageName"></div>
 <a href="/" class="h-close"><i class="fas fa-times"></i></a>
 </div>
-
-<!-- Progress -->
 <div class="progress">
 <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
 <div class="progress-text" id="progressText">0/20</div>
 <div class="progress-time" id="progressTime">30 min</div>
 </div>
-
-<!-- Chat Body -->
 <div class="chat-body" id="chatBody"></div>
-
-<!-- Input -->
 <div class="input-area" id="inputArea">
 <input type="text" class="input-field" id="msgInput" placeholder="Digite sua mensagem..." autocomplete="off">
 <button class="send-btn" id="sendBtn"><i class="fas fa-paper-plane"></i></button>
 </div>
-
-<!-- Limit Overlay -->
 <div class="limit-overlay" id="limitOverlay">
 <div class="limit-icon"><i class="fas fa-lock"></i></div>
 <div class="limit-title">Este teste atingiu o limite de demonstração</div>
@@ -176,33 +126,28 @@ body{font-family:var(--font);background:linear-gradient(180deg,var(--bg),var(--b
     var sending = false;
     var messageCount = 0;
     var hotmartLink = 'https://pay.hotmart.com/G103177435I';
-    var guidedPhase = 'opening'; // opening, main-flow, objection, pre-close, close, free
 
-    // Buscar dados da sessão
+    // ===== CARREGAR SESSÃO =====
     fetch('/api/session/' + SESSION_ID)
         .then(function(r) { return r.json(); })
         .then(function(data) {
-            if (!data.success) {
-                showLimit('Demonstração não encontrada ou expirada.');
-                return;
-            }
+            if (!data.success) { showLimit('Demonstração não encontrada ou expirada.'); return; }
             pageName.textContent = data.session.title || data.session.url;
             hotmartLink = data.session.hotmartLink || hotmartLink;
             limitCta.href = hotmartLink;
             updateProgress(data.session.messageCount || 0, data.session.maxMessages, data.session.remainingMinutes);
 
-            // Auto-saudação com sistema
             addSystemMsg('🔗 Demonstração ativa — ' + (data.session.title || 'Página'));
 
-            // === ABERTURA FIXA (ITEM 4) ===
+            // ===== ABERTURA FIXA =====
             setTimeout(function() {
-                addAIMsg('Você acabou de ver isso funcionando na prática.');
+                addAI('Você acabou de ver isso funcionando na prática.');
                 setTimeout(function() {
-                    addAIMsg('Agora me diz uma coisa — se isso estivesse rodando no seu link hoje, faria diferença nas suas vendas?');
+                    addAI('Agora me diz uma coisa — se isso estivesse rodando no seu link hoje, faria diferença nas suas vendas?');
                     setTimeout(function() {
-                        addStandaloneButtons([
-                            { text: '✅ Sim, com certeza', action: 'guided_yes' },
-                            { text: '🤔 Talvez, quero entender melhor', action: 'guided_maybe' }
+                        showButtons([
+                            { text: '✅ Sim, com certeza', action: 'path_sim' },
+                            { text: '🤔 Talvez, quero entender melhor', action: 'path_talvez' }
                         ]);
                     }, 400);
                 }, 1200);
@@ -216,15 +161,12 @@ body{font-family:var(--font);background:linear-gradient(180deg,var(--bg),var(--b
         fetch('/api/session/' + SESSION_ID)
             .then(function(r) { return r.json(); })
             .then(function(data) {
-                if (!data.success || data.session.isExpired) {
-                    clearInterval(timerInterval);
-                    showLimit();
-                    return;
-                }
+                if (!data.success || data.session.isExpired) { clearInterval(timerInterval); showLimit(); return; }
                 updateProgress(data.session.messageCount, data.session.maxMessages, data.session.remainingMinutes);
             });
     }, 30000);
 
+    // ===== HELPERS =====
     function updateProgress(count, max, mins) {
         var pct = Math.min(100, (count / max) * 100);
         progressFill.style.width = pct + '%';
@@ -233,9 +175,9 @@ body{font-family:var(--font);background:linear-gradient(180deg,var(--bg),var(--b
         if (mins !== undefined) progressTime.textContent = mins + ' min';
     }
 
-    function addMsg(text, type) {
+    function addUser(text) {
         var d = document.createElement('div');
-        d.className = 'msg ' + type;
+        d.className = 'msg user';
         d.textContent = text;
         chatBody.appendChild(d);
         chatBody.scrollTop = chatBody.scrollHeight;
@@ -249,33 +191,30 @@ body{font-family:var(--font);background:linear-gradient(180deg,var(--bg),var(--b
         chatBody.scrollTop = chatBody.scrollHeight;
     }
 
-    function addAIMsg(text, buttons) {
+    function addAI(text, buttons) {
         var d = document.createElement('div');
         d.className = 'msg ai';
         d.textContent = text;
-        
         if (buttons && buttons.length > 0) {
-            var btnContainer = document.createElement('div');
-            btnContainer.className = 'chat-btns';
+            var bc = document.createElement('div');
+            bc.className = 'chat-btns';
             buttons.forEach(function(b) {
                 var btn = document.createElement('button');
                 btn.className = 'chat-btn' + (b.cta ? ' cta' : '');
                 btn.innerHTML = b.text;
-                btn.onclick = function() { 
+                btn.onclick = function() {
                     if (b.url) window.open(b.url, '_blank');
-                    else sendMessage(b.text); 
+                    else sendMessage(b.text);
                 };
-                btnContainer.appendChild(btn);
+                bc.appendChild(btn);
             });
-            d.appendChild(btnContainer);
+            d.appendChild(bc);
         }
-        
         chatBody.appendChild(d);
         chatBody.scrollTop = chatBody.scrollHeight;
     }
 
-    // Standalone buttons (not inside a message bubble)
-    function addStandaloneButtons(buttons) {
+    function showButtons(buttons) {
         var wrap = document.createElement('div');
         wrap.className = 'standalone-btns';
         buttons.forEach(function(b) {
@@ -283,17 +222,11 @@ body{font-family:var(--font);background:linear-gradient(180deg,var(--bg),var(--b
             btn.className = 'chat-btn' + (b.cta ? ' cta' : '');
             btn.innerHTML = b.text;
             btn.onclick = function() {
-                // Disable all buttons in this group
                 wrap.querySelectorAll('.chat-btn').forEach(function(x) { x.disabled = true; x.style.opacity = '0.4'; x.style.pointerEvents = 'none'; });
                 btn.style.opacity = '1';
-                
-                if (b.url) {
-                    window.open(b.url, '_blank');
-                } else if (b.action) {
-                    handleGuidedAction(b.action, b.text);
-                } else {
-                    sendMessage(b.text);
-                }
+                if (b.url) { window.open(b.url, '_blank'); }
+                else if (b.action) { handleAction(b.action, b.text); }
+                else { sendMessage(b.text); }
             };
             wrap.appendChild(btn);
         });
@@ -301,178 +234,156 @@ body{font-family:var(--font);background:linear-gradient(180deg,var(--bg),var(--b
         chatBody.scrollTop = chatBody.scrollHeight;
     }
 
-    // === GUIDED SALES FLOW (ITEMS 4-10) ===
-    function handleGuidedAction(action, displayText) {
-        // Show user choice
-        addMsg(displayText.replace(/^[✅🤔💡👉🚀⚡]+\s*/g, ''), 'user');
-
-        switch(action) {
-            case 'guided_yes':
-                guidedPhase = 'main-flow';
-                setTimeout(function() {
-                    addTypingThen(function() {
-                        addAIMsg('Então você já entendeu o ponto. A maioria das pessoas perde vendas porque o visitante chega, tem uma dúvida e vai embora sem resposta.');
-                        setTimeout(function() {
-                            addTypingThen(function() {
-                                addAIMsg('O que você acabou de ver resolve exatamente isso. Agora a única pergunta é: você quer isso funcionando no seu link ou não?');
-                                setTimeout(function() {
-                                    addStandaloneButtons([
-                                        { text: '🚀 Quero isso no meu link', action: 'want_it', cta: true },
-                                        { text: '💡 Ainda tenho dúvidas', action: 'has_doubts' }
-                                    ]);
-                                }, 400);
-                            });
-                        }, 800);
-                    });
-                }, 300);
-                break;
-
-            case 'guided_maybe':
-                guidedPhase = 'main-flow';
-                setTimeout(function() {
-                    addTypingThen(function() {
-                        addAIMsg('Perfeito. Então deixa eu simplificar: isso aqui transforma visitantes indecisos em pessoas sendo guiadas até a decisão.');
-                        setTimeout(function() {
-                            addTypingThen(function() {
-                                addAIMsg('Foi exatamente isso que você viu. Isso se aplica ao seu caso?');
-                                setTimeout(function() {
-                                    addStandaloneButtons([
-                                        { text: '✅ Sim, faz sentido', action: 'makes_sense' },
-                                        { text: '🤔 Ainda não tenho certeza', action: 'not_sure' }
-                                    ]);
-                                }, 400);
-                            });
-                        }, 800);
-                    });
-                }, 300);
-                break;
-
-            case 'want_it':
-                guidedPhase = 'pre-close';
-                setTimeout(function() {
-                    addTypingThen(function() {
-                        addAIMsg('Pelo que você me falou, isso resolve exatamente o seu cenário. Faz sentido colocar isso no seu negócio agora?');
-                        setTimeout(function() {
-                            addStandaloneButtons([
-                                { text: '✅ Sim, faz sentido', action: 'pre_close_yes' },
-                                { text: '💡 Ainda tenho dúvidas', action: 'has_doubts' }
-                            ]);
-                        }, 400);
-                    });
-                }, 300);
-                break;
-
-            case 'makes_sense':
-                guidedPhase = 'pre-close';
-                setTimeout(function() {
-                    addTypingThen(function() {
-                        addAIMsg('O que você acabou de ver é exatamente o que seus visitantes experimentam antes de decidir. Você quer isso funcionando no seu link?');
-                        setTimeout(function() {
-                            addStandaloneButtons([
-                                { text: '🚀 Quero isso no meu link', action: 'pre_close_yes', cta: true },
-                                { text: '💡 Preciso entender mais', action: 'has_doubts' }
-                            ]);
-                        }, 400);
-                    });
-                }, 300);
-                break;
-
-            case 'not_sure':
-                guidedPhase = 'objection';
-                // Send to AI for adaptive handling
-                sendMessage('Ainda não tenho certeza, quero entender melhor');
-                break;
-
-            case 'has_doubts':
-                guidedPhase = 'objection';
-                // Send to AI for adaptive handling
-                sendMessage('Tenho dúvidas, quero entender melhor');
-                break;
-
-            case 'pre_close_yes':
-                guidedPhase = 'close';
-                setTimeout(function() {
-                    addTypingThen(function() {
-                        addAIMsg('Então vamos direto ao próximo passo. Você só precisa criar seu primeiro LinkMágico e já começa a usar.');
-                        setTimeout(function() {
-                            addStandaloneButtons([
-                                { text: '⚡ Criar meu LinkMágico agora', action: 'final_cta', cta: true }
-                            ]);
-                        }, 400);
-                    });
-                }, 300);
-                break;
-
-            case 'price_yes':
-                guidedPhase = 'pre-close';
-                setTimeout(function() {
-                    addTypingThen(function() {
-                        addAIMsg('Pelo que você me falou, isso resolve exatamente o seu cenário. Faz sentido colocar isso no seu negócio agora?');
-                        setTimeout(function() {
-                            addStandaloneButtons([
-                                { text: '✅ Sim, faz sentido', action: 'pre_close_yes' },
-                                { text: '💡 Quero entender melhor', action: 'has_doubts' }
-                            ]);
-                        }, 400);
-                    });
-                }, 300);
-                break;
-
-            case 'final_cta':
-                window.open(hotmartLink, '_blank');
-                setTimeout(function() {
-                    addAIMsg('Você já viu funcionando. Já entendeu o impacto. Agora é só ativar e começar a converter.');
-                }, 500);
-                break;
-        }
-    }
-
-    function addTypingThen(callback) {
-        var t = addTyping();
-        var delay = 800 + Math.random() * 600;
-        setTimeout(function() { removeTyping(); callback(); }, delay);
-    }
-
-    function addTyping() {
+    function typing(callback) {
         var d = document.createElement('div');
-        d.className = 'typing';
-        d.id = 'typingIndicator';
+        d.className = 'typing'; d.id = 'typingIndicator';
         d.innerHTML = '<span></span><span></span><span></span>';
         chatBody.appendChild(d);
         chatBody.scrollTop = chatBody.scrollHeight;
-        return d;
-    }
-
-    function removeTyping() {
-        var t = document.getElementById('typingIndicator');
-        if (t) t.remove();
+        var delay = 800 + Math.random() * 600;
+        setTimeout(function() {
+            var t = document.getElementById('typingIndicator');
+            if (t) t.remove();
+            callback();
+        }, delay);
     }
 
     function showLimit(msg) {
         if (msg) document.querySelector('.limit-text').textContent = msg;
         limitOverlay.classList.add('show');
-        msgInput.disabled = true;
-        sendBtn.disabled = true;
+        msgInput.disabled = true; sendBtn.disabled = true;
     }
 
-    function showGuided() {
-        var g = document.createElement('div');
-        g.className = 'guided show';
-        g.innerHTML = '<p>Você testou isso na prática. Imagine funcionando com <strong>todos os seus visitantes.</strong></p><div style="margin-top:14px"><a href="' + hotmartLink + '" target="_blank" class="chat-btn cta" style="padding:12px 24px;font-size:.88rem"><i class="fas fa-wand-magic-sparkles"></i> Criar meu LinkMágico agora</a></div>';
-        chatBody.appendChild(g);
-        chatBody.scrollTop = chatBody.scrollHeight;
+    // ===== FLUXO GUIADO — CLOSER =====
+    function handleAction(action, displayText) {
+        // Mostrar escolha do usuário
+        addUser(displayText.replace(/^[✅🤔💡🚀⚡💣🔥]+\s*/g, ''));
+
+        switch(action) {
+
+            // ===== CAMINHO 1: SIM =====
+            case 'path_sim':
+                setTimeout(function() { typing(function() {
+                    addAI('Então você já entendeu o ponto.');
+                    setTimeout(function() { typing(function() {
+                        addAI('A maioria das pessoas perde vendas porque o visitante chega, tem dúvida e vai embora sem resposta.');
+                        setTimeout(function() { typing(function() {
+                            addAI('O que você acabou de ver resolve exatamente isso. Agora a única pergunta é: você quer isso funcionando no seu link ou vai continuar perdendo essas oportunidades?');
+                            setTimeout(function() {
+                                showButtons([
+                                    { text: '🚀 Quero isso no meu link', action: 'pre_close', cta: true },
+                                    { text: '💡 Ainda tenho dúvidas', action: 'doubts' }
+                                ]);
+                            }, 400);
+                        }); }, 600);
+                    }); }, 600);
+                }); }, 300);
+                break;
+
+            // ===== CAMINHO 2: TALVEZ =====
+            case 'path_talvez':
+                setTimeout(function() { typing(function() {
+                    addAI('Perfeito. Então deixa eu simplificar:');
+                    setTimeout(function() { typing(function() {
+                        addAI('Isso aqui transforma visitantes indecisos em pessoas sendo guiadas até a decisão. Foi exatamente isso que você viu.');
+                        setTimeout(function() { typing(function() {
+                            addAI('Isso se aplica ao seu caso hoje?');
+                            setTimeout(function() {
+                                showButtons([
+                                    { text: '✅ Sim, faz sentido', action: 'pre_close' },
+                                    { text: '🤔 Ainda não tenho certeza', action: 'not_sure' }
+                                ]);
+                            }, 400);
+                        }); }, 600);
+                    }); }, 600);
+                }); }, 300);
+                break;
+
+            // ===== "NÃO SEI" =====
+            case 'not_sure':
+                setTimeout(function() { typing(function() {
+                    addAI('Você já viu funcionando. Então não é falta de clareza.');
+                    setTimeout(function() { typing(function() {
+                        addAI('É só uma decisão agora: isso faz sentido pro seu cenário ou não?');
+                        setTimeout(function() {
+                            showButtons([
+                                { text: '✅ Faz sentido', action: 'pre_close' },
+                                { text: '💡 Ainda tenho dúvidas', action: 'doubts' }
+                            ]);
+                        }, 400);
+                    }); }, 600);
+                }); }, 300);
+                break;
+
+            // ===== DÚVIDAS → MANDA PRA IA COM PRESSÃO =====
+            case 'doubts':
+                sendMessage('Tenho dúvidas, quero entender melhor');
+                break;
+
+            // ===== "VOU PENSAR" =====
+            case 'think':
+                setTimeout(function() { typing(function() {
+                    addAI('Pensar não resolve o problema.');
+                    setTimeout(function() { typing(function() {
+                        addAI('Porque enquanto você pensa, os visitantes continuam chegando, tendo dúvida e indo embora.');
+                        setTimeout(function() { typing(function() {
+                            addAI('A pergunta real é: faz sentido continuar deixando isso acontecer?');
+                            setTimeout(function() {
+                                showButtons([
+                                    { text: '🚀 Não, quero resolver', action: 'pre_close', cta: true },
+                                    { text: '💡 Ainda tenho dúvidas', action: 'doubts' }
+                                ]);
+                            }, 400);
+                        }); }, 600);
+                    }); }, 600);
+                }); }, 300);
+                break;
+
+            // ===== PRÉ-FECHAMENTO =====
+            case 'pre_close':
+                setTimeout(function() { typing(function() {
+                    addAI('Pelo que você me falou, isso resolve exatamente o seu cenário. Faz sentido colocar isso no seu negócio agora?');
+                    setTimeout(function() {
+                        showButtons([
+                            { text: '✅ Sim, faz sentido', action: 'close', cta: true },
+                            { text: '🤔 Vou pensar', action: 'think' }
+                        ]);
+                    }, 400);
+                }); }, 300);
+                break;
+
+            // ===== FECHAMENTO =====
+            case 'close':
+                setTimeout(function() { typing(function() {
+                    addAI('Então vamos direto. Você só precisa criar seu primeiro LinkMágico e já começa a usar.');
+                    setTimeout(function() {
+                        showButtons([
+                            { text: '⚡ Criar meu LinkMágico agora', action: 'final_cta', cta: true }
+                        ]);
+                    }, 400);
+                }); }, 300);
+                break;
+
+            // ===== CTA FINAL =====
+            case 'final_cta':
+                window.open(hotmartLink, '_blank');
+                setTimeout(function() { typing(function() {
+                    addAI('Você já viu funcionando. Já entendeu o impacto. Agora é só ativar e começar a converter.');
+                }); }, 500);
+                break;
+        }
     }
 
+    // ===== ENVIAR MENSAGEM À IA =====
     async function sendMessage(text) {
         if (sending || !text.trim()) return;
-        sending = true;
-        sendBtn.disabled = true;
+        sending = true; sendBtn.disabled = true;
+        addUser(text); msgInput.value = ''; messageCount++;
 
-        addMsg(text, 'user');
-        msgInput.value = '';
-        messageCount++;
-
-        addTyping();
+        var ti = document.createElement('div');
+        ti.className = 'typing'; ti.id = 'typingIndicator';
+        ti.innerHTML = '<span></span><span></span><span></span>';
+        chatBody.appendChild(ti); chatBody.scrollTop = chatBody.scrollHeight;
 
         try {
             var res = await fetch('/api/chat/' + SESSION_ID, {
@@ -481,109 +392,101 @@ body{font-family:var(--font);background:linear-gradient(180deg,var(--bg),var(--b
                 body: JSON.stringify({ message: text })
             });
             var data = await res.json();
+            var t = document.getElementById('typingIndicator'); if (t) t.remove();
 
-            removeTyping();
-
-            if (data.limitReached) {
-                showLimit(data.error);
-                return;
-            }
-
-            if (!res.ok) {
-                addSystemMsg('⚠️ ' + (data.error || 'Erro'));
-                return;
-            }
+            if (data.limitReached) { showLimit(data.error); return; }
+            if (!res.ok) { addSystemMsg('⚠️ ' + (data.error || 'Erro')); return; }
 
             if (data.messages && data.messages.length > 0) {
                 for (var i = 0; i < data.messages.length; i++) {
-                    addTyping();
-                    var delay = 800 + Math.random() * 700;
-                    await new Promise(function(r) { setTimeout(r, delay); });
-                    removeTyping();
-                    
-                    var buttons = [];
+                    var ti2 = document.createElement('div');
+                    ti2.className = 'typing'; ti2.id = 'typingIndicator';
+                    ti2.innerHTML = '<span></span><span></span><span></span>';
+                    chatBody.appendChild(ti2); chatBody.scrollTop = chatBody.scrollHeight;
+                    await new Promise(function(r) { setTimeout(r, 800 + Math.random() * 700); });
+                    var t2 = document.getElementById('typingIndicator'); if (t2) t2.remove();
+
+                    var btns = [];
                     if (i === data.messages.length - 1) {
-                        // Build context-aware buttons based on AI response + stage + pressure
-                        buttons = buildSmartButtons(data);
+                        btns = buildCloserButtons(data);
                     }
-                    
-                    // Clean URLs from displayed text
+
                     var cleanText = data.messages[i];
-                    if (data.checkoutLink && buttons.length > 0) {
+                    if (data.checkoutLink && btns.length > 0) {
                         cleanText = cleanText.replace(/(https?:\/\/[^\s]+)/g, '').trim();
                         if (!cleanText) cleanText = 'Aqui está o link:';
                     }
-                    
-                    addAIMsg(cleanText, buttons);
+                    addAI(cleanText, btns);
                 }
             } else {
-                addAIMsg(data.response);
+                addAI(data.response);
             }
 
             if (data.stats) {
                 updateProgress(data.stats.messageCount, data.stats.maxMessages, data.stats.remainingMinutes);
-                // Progressive guided conversion
-                if (data.stats.messageCount === 10) setTimeout(showGuided, 2000);
             }
 
         } catch (err) {
-            removeTyping();
+            var t3 = document.getElementById('typingIndicator'); if (t3) t3.remove();
             addSystemMsg('⚠️ Erro de conexão.');
         } finally {
-            sending = false;
-            sendBtn.disabled = false;
-            msgInput.focus();
+            sending = false; sendBtn.disabled = false; msgInput.focus();
         }
     }
 
-    // === SMART BUTTONS BASED ON CONTEXT ===
-    function buildSmartButtons(data) {
+    // ===== BOTÕES CLOSER CONTEXTUAIS =====
+    function buildCloserButtons(data) {
         var response = data.response || '';
-        var stage = data.stage || '';
         var pressureLevel = data.pressureLevel || 1;
-        var msgCount = (data.stats && data.stats.messageCount) || messageCount;
 
-        // 1. If detected checkout URL → direct link button
+        // Checkout link detectado
         if (data.checkoutLink) {
             return [
                 { text: '👉 Acessar agora', cta: true, url: data.checkoutLink },
-                { text: 'Tenho mais dúvidas' }
+                { text: 'Ainda tenho dúvidas' }
             ];
         }
 
-        // 2. Pressure level 4 (closing) → final CTA
-        if (pressureLevel >= 4 || stage === 'DECISÃO') {
+        // Nível 4 = CTA final
+        if (pressureLevel >= 4 || data.stage === 'DECISÃO') {
             return [
                 { text: '⚡ Criar meu LinkMágico agora', cta: true, url: data.hotmartLink || hotmartLink },
                 { text: 'Ainda tenho uma dúvida' }
             ];
         }
 
-        // 3. Pre-close detected in response
-        if (/faz sentido|quer.*agora|quer.*ativar|começar agora|colocar.*negócio/i.test(response)) {
+        // Pré-fechamento detectado
+        if (/faz sentido|quer.*agora|quer.*ativar|colocar.*negócio/i.test(response)) {
             return [
-                { text: '✅ Sim, faz sentido', cta: false },
-                { text: '💡 Quero entender melhor' }
+                { text: '✅ Sim, faz sentido' },
+                { text: '🤔 Vou pensar' }
             ];
         }
 
-        // 4. Price/offer context
-        if (/pre[çc]o|valor|oferta|investimento|pagamento/i.test(response)) {
+        // Preço
+        if (/pre[çc]o|valor|oferta|investimento/i.test(response)) {
             return [
                 { text: '👉 Ver oferta', cta: true, url: data.hotmartLink || hotmartLink },
                 { text: 'Tenho mais dúvidas' }
             ];
         }
 
-        // 5. Pressure level 3 → decision push
+        // Nível 3 = push decisão
         if (pressureLevel >= 3) {
             return [
-                { text: '🚀 Quero isso no meu link', cta: true, url: data.hotmartLink || hotmartLink },
-                { text: '💡 Preciso entender mais' }
+                { text: '🚀 Quero isso', cta: true, url: data.hotmartLink || hotmartLink },
+                { text: '💡 Ainda tenho dúvidas' }
             ];
         }
 
-        // 6. Default — keep conversation flowing
+        // Nível 2 = binário
+        if (pressureLevel >= 2) {
+            return [
+                { text: '✅ Faz sentido' },
+                { text: '🤔 Ainda não sei' }
+            ];
+        }
+
         return [];
     }
 
