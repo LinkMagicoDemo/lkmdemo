@@ -142,6 +142,8 @@ router.post('/chat/:id', async (req, res) => {
             provider: result.provider,
             emotion: result.emotion?.primary,
             stage: result.stage,
+            linkType: result.linkType || 'generic',
+            pressureLevel: result.pressureLevel || 1,
             checkoutLink: primaryLink,
             hotmartLink: process.env.HOTMART_LINK || 'https://pay.hotmart.com/G103177435I',
             stats: {
