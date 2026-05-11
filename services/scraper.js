@@ -38,18 +38,37 @@ async function extractPageData(url) {
             },
             timeout: 15000,
             maxRedirects: 5,
-            validateStatus: s => s >= 200 && s < 400
+            validateStatus: () => true // Aceita QUALQUER status (200, 404, 500, etc.)
         });
         html = response.data || '';
         const finalUrl = response.request?.res?.responseUrl || url;
         if (finalUrl && finalUrl !== url) extractedData.url = finalUrl;
+        if (response.status >= 400) {
+            console.warn(`⚠️ Página retornou status ${response.status}, tentando extrair conteúdo mesmo assim...`);
+        }
     } catch (err) {
         console.warn(`⚠️ Erro ao acessar ${url}: ${err.message}`);
-        throw new Error(`Não foi possível acessar a página: ${err.message}`);
+        // NÃO lançar erro — criar sessão com dados mínimos baseados na URL
+        html = '';
     }
 
+    // Se não conseguiu HTML, gerar dados mínimos a partir da URL
     if (!html || html.length < 100) {
-        throw new Error('Conteúdo da página muito curto ou vazio');
+        console.warn(`⚠️ Conteúdo vazio/curto para ${url}. Usando fallback baseado na URL.`);
+        const urlObj = new URL(url);
+        const domain = urlObj.hostname.replace('www.', '');
+        const pathParts = urlObj.pathname.split('/').filter(p => p.length > 0);
+        const pageName = pathParts.length > 0
+            ? pathParts[pathParts.length - 1].replace(/[-_]/g, ' ').replace(/\.\w+$/, '')
+            : domain;
+
+        extractedData.title = pageName.charAt(0).toUpperCase() + pageName.slice(1) + ' — ' + domain;
+        extractedData.description = `Página de ${domain}${urlObj.pathname !== '/' ? ' — ' + urlObj.pathname : ''}`;
+        extractedData.cleanText = `Site: ${domain}. Página: ${pageName}. URL completa: ${url}`;
+        extractedData.summary = extractedData.description;
+        extractedData.extractionTime = Date.now() - startTime;
+        console.log(`✅ Extração fallback: "${extractedData.title}" (dados mínimos da URL)`);
+        return extractedData;
     }
 
     try {
