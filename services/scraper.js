@@ -75,12 +75,18 @@ async function extractPageData(url) {
         const $ = cheerio.load(html);
         $('script, style, noscript, iframe, svg, nav, footer').remove();
 
-        // Título — múltiplas fontes com prioridade
-        const titleSelectors = ['h1', 'meta[property="og:title"]', 'meta[name="twitter:title"]', 'title'];
-        for (const sel of titleSelectors) {
-            const el = $(sel).first();
-            const t = (el.attr('content') || el.text() || '').trim();
-            if (t && t.length > 5 && t.length < 200) { extractedData.title = t; break; }
+        // Título — priorizar meta tags (nome real do produto) sobre h1 (headline do Hero)
+        const ogTitle = $('meta[property="og:title"]').attr('content')?.trim();
+        const ogSiteName = $('meta[property="og:site_name"]').attr('content')?.trim();
+        const metaTitle = $('title').text()?.trim();
+        const twitterTitle = $('meta[name="twitter:title"]').attr('content')?.trim();
+        const h1Text = $('h1').first().text()?.trim();
+
+        // Prioridade: og:site_name > og:title > <title> > twitter:title > h1
+        // og:site_name geralmente é o nome real da marca/produto
+        const titleCandidates = [ogSiteName, ogTitle, metaTitle, twitterTitle, h1Text];
+        for (const t of titleCandidates) {
+            if (t && t.length > 3 && t.length < 120) { extractedData.title = t; break; }
         }
 
         // Descrição — múltiplas fontes
