@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { extractPageData } = require('../services/scraper');
-const { generateResponse } = require('../services/ai');
+const { generateResponse, generateOpeningMessage } = require('../services/ai');
 const { createSession, isSessionValid, addMessage, getSessionStats, getSession } = require('../services/session');
 
 // ===== POST /api/generate =====
@@ -20,8 +20,11 @@ router.post('/generate', async (req, res) => {
         const pageData = await extractPageData(url);
 
         if (!pageData.title && !pageData.cleanText) {
-            return res.status(422).json({ error: 'Não foi possível extrair conteúdo desta página' });
+            return res.status(422).json({ error: 'Não foi possível extrair conteúdo desta página. Tente outra URL.' });
         }
+
+        // Log de qualidade da extração
+        console.log(`📊 Extração: título="${pageData.title}", desc=${pageData.description?.length || 0} chars, texto=${pageData.cleanText?.length || 0} chars, preços=${pageData.prices?.length || 0}`);
 
         // Criar sessão demo
         const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.ip || '';
@@ -34,6 +37,9 @@ router.post('/generate', async (req, res) => {
                 hotmartLink: process.env.HOTMART_LINK
             });
         }
+
+        // Gerar mensagem de abertura contextual
+        const opening = generateOpeningMessage(pageData);
 
         res.json({
             success: true,
@@ -55,7 +61,7 @@ router.post('/generate', async (req, res) => {
 });
 
 // ===== GET /api/session/:id =====
-// Retorna dados e status da sessão
+// Retorna dados e status da sessão + abertura contextual
 router.get('/session/:id', (req, res) => {
     try {
         const { id } = req.params;
@@ -70,15 +76,33 @@ router.get('/session/:id', (req, res) => {
         }
 
         const stats = getSessionStats(id);
+        const pageData = check.session.page_data || {};
+
+        // Gerar abertura contextual baseada no conteúdo da página
+        const opening = generateOpeningMessage(pageData);
+
+        // Extrair informações úteis para o frontend
+        const pageInfo = {
+            title: pageData.title || '',
+            description: (pageData.description || '').substring(0, 200),
+            prices: pageData.prices || [],
+            cta: pageData.cta || '',
+            hasWhatsapp: (pageData.contacts?.whatsapp?.length || 0) > 0,
+            hasEmail: (pageData.contacts?.email?.length || 0) > 0,
+            contentLength: (pageData.cleanText || '').length
+        };
 
         res.json({
             success: true,
             session: {
                 id,
-                title: check.session.page_data.title,
+                title: pageData.title,
                 url: check.session.url,
                 ...stats
-            }
+            },
+            opening,
+            pageInfo,
+            hotmartLink: process.env.HOTMART_LINK || 'https://pay.hotmart.com/G103177435I'
         });
 
     } catch (err) {

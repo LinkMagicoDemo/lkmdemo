@@ -18,7 +18,7 @@ body{font-family:var(--font);background:linear-gradient(180deg,var(--bg),var(--b
 .header{padding:14px 18px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(100,150,255,0.15);background:linear-gradient(135deg,rgba(30,107,255,0.12),rgba(123,97,255,0.06));backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);flex-shrink:0;z-index:10}
 .h-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--glow));display:flex;align-items:center;justify-content:center;font-size:.8rem;color:#fff;font-weight:700;box-shadow:0 0 15px rgba(30,107,255,0.4);flex-shrink:0}
 .h-info{flex:1;min-width:0}
-.h-name{font-weight:600;color:var(--text-bright);font-size:.9rem}
+.h-name{font-weight:600;color:var(--text-bright);font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .h-status{font-size:.68rem;color:var(--green);display:flex;align-items:center;gap:4px}
 @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(43,230,106,.6)}50%{box-shadow:0 0 0 5px rgba(43,230,106,0)}}
 .h-status::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;flex-shrink:0}
@@ -57,6 +57,11 @@ body{font-family:var(--font);background:linear-gradient(180deg,var(--bg),var(--b
 .standalone-btns{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:8px 0;animation:msgIn .4s ease}
 .standalone-btns .chat-btn{padding:10px 18px;font-size:.82rem}
 
+/* DEMO BANNER */
+.demo-banner{padding:10px 18px;background:linear-gradient(90deg,rgba(30,107,255,0.1),rgba(123,97,255,0.08));border-bottom:1px solid rgba(100,150,255,0.1);text-align:center;font-size:.72rem;color:var(--text-muted);flex-shrink:0}
+.demo-banner a{color:var(--green);font-weight:600;text-decoration:none}
+.demo-banner a:hover{text-decoration:underline}
+
 /* INPUT */
 .input-area{padding:12px 18px;border-top:1px solid rgba(100,150,255,0.1);background:rgba(5,10,25,0.8);flex-shrink:0;display:flex;gap:10px;align-items:center}
 .input-field{flex:1;padding:12px 16px;border-radius:24px;border:1px solid rgba(100,150,255,0.15);background:rgba(10,20,40,0.6);color:var(--text-bright);font-family:var(--font);font-size:.88rem;outline:none;transition:border-color .2s;min-width:0}
@@ -86,7 +91,7 @@ body{font-family:var(--font);background:linear-gradient(180deg,var(--bg),var(--b
 <div class="app" id="app">
 <div class="header">
 <div class="h-avatar">IA</div>
-<div class="h-info"><div class="h-name">Assistente IA</div><div class="h-status">Online</div></div>
+<div class="h-info"><div class="h-name" id="headerName">Assistente IA</div><div class="h-status">Online</div></div>
 <div class="h-page" id="pageName"></div>
 <a href="/" class="h-close"><i class="fas fa-times"></i></a>
 </div>
@@ -97,15 +102,15 @@ body{font-family:var(--font);background:linear-gradient(180deg,var(--bg),var(--b
 </div>
 <div class="chat-body" id="chatBody"></div>
 <div class="input-area" id="inputArea">
-<input type="text" class="input-field" id="msgInput" placeholder="Digite sua mensagem..." autocomplete="off">
+<input type="text" class="input-field" id="msgInput" placeholder="Pergunte algo sobre o produto..." autocomplete="off">
 <button class="send-btn" id="sendBtn"><i class="fas fa-paper-plane"></i></button>
 </div>
 <div class="limit-overlay" id="limitOverlay">
-<div class="limit-icon"><i class="fas fa-lock"></i></div>
-<div class="limit-title">Este teste atingiu o limite de demonstração</div>
-<div class="limit-text">Para usar com visitantes reais e ilimitados, ative seu LinkMágico completo.</div>
-<a class="limit-cta" id="limitCta" href="#" target="_blank"><i class="fas fa-wand-magic-sparkles"></i> Ativar meu LinkMágico</a>
-<div class="limit-sub">Menos de R$97/ano · Sem mensalidade</div>
+<div class="limit-icon"><i class="fas fa-wand-magic-sparkles"></i></div>
+<div class="limit-title">Gostou do que viu?</div>
+<div class="limit-text" id="limitText">Essa foi apenas uma demonstração. Com o LinkMágico completo, esse chat inteligente roda 24h no seu link — respondendo, convencendo e convertendo visitantes em clientes reais.</div>
+<a class="limit-cta" id="limitCta" href="#" target="_blank"><i class="fas fa-rocket"></i> Quero isso no meu link</a>
+<div class="limit-sub">Acesso completo · Sem limite de mensagens · IA 24h</div>
 </div>
 </div>
 
@@ -123,32 +128,42 @@ body{font-family:var(--font);background:linear-gradient(180deg,var(--bg),var(--b
     var limitOverlay = document.getElementById('limitOverlay');
     var limitCta = document.getElementById('limitCta');
     var pageName = document.getElementById('pageName');
+    var headerName = document.getElementById('headerName');
     var sending = false;
     var messageCount = 0;
     var hotmartLink = 'https://pay.hotmart.com/G103177435I';
+    var pageInfo = {};
+    var demoValueShown = false; // Controla quando já demonstrou valor
 
     // ===== CARREGAR SESSÃO =====
     fetch('/api/session/' + SESSION_ID)
         .then(function(r) { return r.json(); })
         .then(function(data) {
             if (!data.success) { showLimit('Demonstração não encontrada ou expirada.'); return; }
-            pageName.textContent = data.session.title || data.session.url;
-            hotmartLink = data.session.hotmartLink || hotmartLink;
+
+            var title = data.session.title || data.session.url || 'Página';
+            pageName.textContent = title;
+            headerName.textContent = 'Especialista — ' + (title.length > 25 ? title.substring(0, 25) + '…' : title);
+            hotmartLink = data.hotmartLink || hotmartLink;
             limitCta.href = hotmartLink;
+            pageInfo = data.pageInfo || {};
             updateProgress(data.session.messageCount || 0, data.session.maxMessages, data.session.remainingMinutes);
 
-            addSystemMsg('🔗 Demonstração ativa — ' + (data.session.title || 'Página'));
+            // ===== ABERTURA CONTEXTUAL — USA DADOS REAIS DA PÁGINA =====
+            var opening = data.opening || {};
+            var line1 = opening.line1 || ('Oi! 👋 Vi que você está conferindo "' + title + '".');
+            var line2 = opening.line2 || 'Posso te ajudar com qualquer dúvida. O que gostaria de saber?';
 
-            // ===== ABERTURA FIXA =====
+            addSystemMsg('🔗 Demo ativa — <strong>' + escapeHtml(title) + '</strong>');
+
             setTimeout(function() {
-                addAI('Você acabou de ver isso funcionando na prática.');
+                addAI(line1);
                 setTimeout(function() {
-                    addAI('Agora me diz uma coisa — se isso estivesse rodando no seu link hoje, faria diferença nas suas vendas?');
+                    addAI(line2);
                     setTimeout(function() {
-                        showButtons([
-                            { text: '✅ Sim, com certeza', action: 'path_sim' },
-                            { text: '🤔 Talvez, quero entender melhor', action: 'path_talvez' }
-                        ]);
+                        // Botões contextuais baseados na página
+                        var quickBtns = buildContextualButtons(pageInfo);
+                        if (quickBtns.length > 0) showButtons(quickBtns);
                     }, 400);
                 }, 1200);
             }, 800);
@@ -166,7 +181,32 @@ body{font-family:var(--font);background:linear-gradient(180deg,var(--bg),var(--b
             });
     }, 30000);
 
+    // ===== BOTÕES CONTEXTUAIS BASEADOS NA PÁGINA =====
+    function buildContextualButtons(info) {
+        var btns = [];
+        if (info.prices && info.prices.length > 0) {
+            btns.push({ text: '💰 Qual o preço?' });
+        }
+        if (info.title) {
+            btns.push({ text: '🤔 Como funciona?' });
+        }
+        if (info.hasWhatsapp) {
+            btns.push({ text: '📱 Quero falar com alguém' });
+        }
+        if (btns.length === 0) {
+            btns.push({ text: '🤔 O que é isso exatamente?' });
+            btns.push({ text: '💡 Quais os benefícios?' });
+        }
+        return btns;
+    }
+
     // ===== HELPERS =====
+    function escapeHtml(text) {
+        var d = document.createElement('div');
+        d.textContent = text;
+        return d.innerHTML;
+    }
+
     function updateProgress(count, max, mins) {
         var pct = Math.min(100, (count / max) * 100);
         progressFill.style.width = pct + '%';
@@ -204,7 +244,7 @@ body{font-family:var(--font);background:linear-gradient(180deg,var(--bg),var(--b
                 btn.innerHTML = b.text;
                 btn.onclick = function() {
                     if (b.url) window.open(b.url, '_blank');
-                    else sendMessage(b.text);
+                    else sendMessage(b.text.replace(/^[✅🤔💡🚀⚡💣🔥💰📱👉🎯]+\s*/g, ''));
                 };
                 bc.appendChild(btn);
             });
@@ -225,8 +265,7 @@ body{font-family:var(--font);background:linear-gradient(180deg,var(--bg),var(--b
                 wrap.querySelectorAll('.chat-btn').forEach(function(x) { x.disabled = true; x.style.opacity = '0.4'; x.style.pointerEvents = 'none'; });
                 btn.style.opacity = '1';
                 if (b.url) { window.open(b.url, '_blank'); }
-                else if (b.action) { handleAction(b.action, b.text); }
-                else { sendMessage(b.text); }
+                else { sendMessage(b.text.replace(/^[✅🤔💡🚀⚡💣🔥💰📱👉🎯]+\s*/g, '')); }
             };
             wrap.appendChild(btn);
         });
@@ -234,144 +273,10 @@ body{font-family:var(--font);background:linear-gradient(180deg,var(--bg),var(--b
         chatBody.scrollTop = chatBody.scrollHeight;
     }
 
-    function typing(callback) {
-        var d = document.createElement('div');
-        d.className = 'typing'; d.id = 'typingIndicator';
-        d.innerHTML = '<span></span><span></span><span></span>';
-        chatBody.appendChild(d);
-        chatBody.scrollTop = chatBody.scrollHeight;
-        var delay = 800 + Math.random() * 600;
-        setTimeout(function() {
-            var t = document.getElementById('typingIndicator');
-            if (t) t.remove();
-            callback();
-        }, delay);
-    }
-
     function showLimit(msg) {
-        if (msg) document.querySelector('.limit-text').textContent = msg;
+        if (msg) document.getElementById('limitText').textContent = msg;
         limitOverlay.classList.add('show');
         msgInput.disabled = true; sendBtn.disabled = true;
-    }
-
-    // ===== FLUXO GUIADO — CLOSER =====
-    function handleAction(action, displayText) {
-        // Mostrar escolha do usuário
-        addUser(displayText.replace(/^[✅🤔💡🚀⚡💣🔥]+\s*/g, ''));
-
-        switch(action) {
-
-            // ===== CAMINHO 1: SIM =====
-            case 'path_sim':
-                setTimeout(function() { typing(function() {
-                    addAI('Então você já entendeu o ponto.');
-                    setTimeout(function() { typing(function() {
-                        addAI('A maioria das pessoas perde vendas porque o visitante chega, tem dúvida e vai embora sem resposta.');
-                        setTimeout(function() { typing(function() {
-                            addAI('O que você acabou de ver resolve exatamente isso. Agora a única pergunta é: você quer isso funcionando no seu link ou vai continuar perdendo essas oportunidades?');
-                            setTimeout(function() {
-                                showButtons([
-                                    { text: '🚀 Quero isso no meu link', action: 'pre_close', cta: true },
-                                    { text: '💡 Ainda tenho dúvidas', action: 'doubts' }
-                                ]);
-                            }, 400);
-                        }); }, 600);
-                    }); }, 600);
-                }); }, 300);
-                break;
-
-            // ===== CAMINHO 2: TALVEZ =====
-            case 'path_talvez':
-                setTimeout(function() { typing(function() {
-                    addAI('Perfeito. Então deixa eu simplificar:');
-                    setTimeout(function() { typing(function() {
-                        addAI('Isso aqui transforma visitantes indecisos em pessoas sendo guiadas até a decisão. Foi exatamente isso que você viu.');
-                        setTimeout(function() { typing(function() {
-                            addAI('Isso se aplica ao seu caso hoje?');
-                            setTimeout(function() {
-                                showButtons([
-                                    { text: '✅ Sim, faz sentido', action: 'pre_close' },
-                                    { text: '🤔 Ainda não tenho certeza', action: 'not_sure' }
-                                ]);
-                            }, 400);
-                        }); }, 600);
-                    }); }, 600);
-                }); }, 300);
-                break;
-
-            // ===== "NÃO SEI" =====
-            case 'not_sure':
-                setTimeout(function() { typing(function() {
-                    addAI('Você já viu funcionando. Então não é falta de clareza.');
-                    setTimeout(function() { typing(function() {
-                        addAI('É só uma decisão agora: isso faz sentido pro seu cenário ou não?');
-                        setTimeout(function() {
-                            showButtons([
-                                { text: '✅ Faz sentido', action: 'pre_close' },
-                                { text: '💡 Ainda tenho dúvidas', action: 'doubts' }
-                            ]);
-                        }, 400);
-                    }); }, 600);
-                }); }, 300);
-                break;
-
-            // ===== DÚVIDAS → MANDA PRA IA COM PRESSÃO =====
-            case 'doubts':
-                sendMessage('Tenho dúvidas, quero entender melhor');
-                break;
-
-            // ===== "VOU PENSAR" =====
-            case 'think':
-                setTimeout(function() { typing(function() {
-                    addAI('Pensar não resolve o problema.');
-                    setTimeout(function() { typing(function() {
-                        addAI('Porque enquanto você pensa, os visitantes continuam chegando, tendo dúvida e indo embora.');
-                        setTimeout(function() { typing(function() {
-                            addAI('A pergunta real é: faz sentido continuar deixando isso acontecer?');
-                            setTimeout(function() {
-                                showButtons([
-                                    { text: '🚀 Não, quero resolver', action: 'pre_close', cta: true },
-                                    { text: '💡 Ainda tenho dúvidas', action: 'doubts' }
-                                ]);
-                            }, 400);
-                        }); }, 600);
-                    }); }, 600);
-                }); }, 300);
-                break;
-
-            // ===== PRÉ-FECHAMENTO =====
-            case 'pre_close':
-                setTimeout(function() { typing(function() {
-                    addAI('Pelo que você me falou, isso resolve exatamente o seu cenário. Faz sentido colocar isso no seu negócio agora?');
-                    setTimeout(function() {
-                        showButtons([
-                            { text: '✅ Sim, faz sentido', action: 'close', cta: true },
-                            { text: '🤔 Vou pensar', action: 'think' }
-                        ]);
-                    }, 400);
-                }); }, 300);
-                break;
-
-            // ===== FECHAMENTO =====
-            case 'close':
-                setTimeout(function() { typing(function() {
-                    addAI('Então vamos direto. Você só precisa criar seu primeiro LinkMágico e já começa a usar.');
-                    setTimeout(function() {
-                        showButtons([
-                            { text: '⚡ Criar meu LinkMágico agora', action: 'final_cta', cta: true }
-                        ]);
-                    }, 400);
-                }); }, 300);
-                break;
-
-            // ===== CTA FINAL =====
-            case 'final_cta':
-                window.open(hotmartLink, '_blank');
-                setTimeout(function() { typing(function() {
-                    addAI('Você já viu funcionando. Já entendeu o impacto. Agora é só ativar e começar a converter.');
-                }); }, 500);
-                break;
-        }
     }
 
     // ===== ENVIAR MENSAGEM À IA =====
@@ -397,96 +302,98 @@ body{font-family:var(--font);background:linear-gradient(180deg,var(--bg),var(--b
             if (data.limitReached) { showLimit(data.error); return; }
             if (!res.ok) { addSystemMsg('⚠️ ' + (data.error || 'Erro')); return; }
 
+            // Exibir mensagens da IA com typing natural
             if (data.messages && data.messages.length > 0) {
                 for (var i = 0; i < data.messages.length; i++) {
-                    var ti2 = document.createElement('div');
-                    ti2.className = 'typing'; ti2.id = 'typingIndicator';
-                    ti2.innerHTML = '<span></span><span></span><span></span>';
-                    chatBody.appendChild(ti2); chatBody.scrollTop = chatBody.scrollHeight;
-                    await new Promise(function(r) { setTimeout(r, 800 + Math.random() * 700); });
-                    var t2 = document.getElementById('typingIndicator'); if (t2) t2.remove();
+                    if (i > 0) {
+                        var ti2 = document.createElement('div');
+                        ti2.className = 'typing'; ti2.id = 'typingIndicator';
+                        ti2.innerHTML = '<span></span><span></span><span></span>';
+                        chatBody.appendChild(ti2); chatBody.scrollTop = chatBody.scrollHeight;
+                        await new Promise(function(r) { setTimeout(r, 600 + Math.random() * 500); });
+                        var t2 = document.getElementById('typingIndicator'); if (t2) t2.remove();
+                    }
 
                     var btns = [];
                     if (i === data.messages.length - 1) {
-                        btns = buildCloserButtons(data);
+                        btns = buildResponseButtons(data);
                     }
-
-                    var cleanText = data.messages[i];
-                    if (data.checkoutLink && btns.length > 0) {
-                        cleanText = cleanText.replace(/(https?:\/\/[^\s]+)/g, '').trim();
-                        if (!cleanText) cleanText = 'Aqui está o link:';
-                    }
-                    addAI(cleanText, btns);
+                    addAI(data.messages[i], btns);
                 }
             } else {
                 addAI(data.response);
             }
 
+            // Após algumas interações, mostrar CTA do LinkMágico
+            if (messageCount >= 5 && !demoValueShown) {
+                demoValueShown = true;
+                setTimeout(function() {
+                    addSystemMsg('💡 <strong>Gostou dessa experiência?</strong> Isso é o LinkMágico funcionando. Imagine isso 24h no seu link, convertendo visitantes em clientes.');
+                    setTimeout(function() {
+                        showButtons([
+                            { text: '🚀 Quero isso no meu link', cta: true, url: hotmartLink },
+                            { text: '💬 Continuar testando' }
+                        ]);
+                    }, 600);
+                }, 1500);
+            }
+
             if (data.stats) {
                 updateProgress(data.stats.messageCount, data.stats.maxMessages, data.stats.remainingMinutes);
+                // Aviso perto do limite
+                if (data.stats.isNearLimit && data.stats.messageCount >= data.stats.maxMessages - 2) {
+                    setTimeout(function() {
+                        addSystemMsg('⏳ Restam poucas mensagens nesta demo. Para uso ilimitado, <a href="' + hotmartLink + '" target="_blank" style="color:var(--green);font-weight:700">ative o LinkMágico completo</a>.');
+                    }, 2000);
+                }
             }
 
         } catch (err) {
             var t3 = document.getElementById('typingIndicator'); if (t3) t3.remove();
-            addSystemMsg('⚠️ Erro de conexão.');
+            addSystemMsg('⚠️ Erro de conexão. Tente novamente.');
         } finally {
             sending = false; sendBtn.disabled = false; msgInput.focus();
         }
     }
 
-    // ===== BOTÕES CLOSER CONTEXTUAIS =====
-    function buildCloserButtons(data) {
-        var response = data.response || '';
+    // ===== BOTÕES CONTEXTUAIS PÓS-RESPOSTA =====
+    function buildResponseButtons(data) {
         var pressureLevel = data.pressureLevel || 1;
+        var response = data.response || '';
 
-        // Checkout link detectado
+        // Checkout link detectado na resposta
         if (data.checkoutLink) {
             return [
                 { text: '👉 Acessar agora', cta: true, url: data.checkoutLink },
-                { text: 'Ainda tenho dúvidas' }
+                { text: '🤔 Tenho mais dúvidas' }
             ];
         }
 
-        // Nível 4 = CTA final
-        if (pressureLevel >= 4 || data.stage === 'DECISÃO') {
+        // Após muitas mensagens, direcionar para LinkMágico
+        if (pressureLevel >= 4 || messageCount >= 10) {
             return [
-                { text: '⚡ Criar meu LinkMágico agora', cta: true, url: data.hotmartLink || hotmartLink },
-                { text: 'Ainda tenho uma dúvida' }
+                { text: '🚀 Ativar LinkMágico completo', cta: true, url: data.hotmartLink || hotmartLink },
+                { text: '💬 Continuar conversa' }
             ];
         }
 
-        // Pré-fechamento detectado
-        if (/faz sentido|quer.*agora|quer.*ativar|colocar.*negócio/i.test(response)) {
+        // Preço mencionado
+        if (/pre[çc]o|valor|R\$|oferta|investimento/i.test(response)) {
             return [
-                { text: '✅ Sim, faz sentido' },
-                { text: '🤔 Vou pensar' }
+                { text: '👉 Quero garantir' },
+                { text: '🤔 Tenho mais dúvidas' }
             ];
         }
 
-        // Preço
-        if (/pre[çc]o|valor|oferta|investimento/i.test(response)) {
-            return [
-                { text: '👉 Ver oferta', cta: true, url: data.hotmartLink || hotmartLink },
-                { text: 'Tenho mais dúvidas' }
-            ];
-        }
-
-        // Nível 3 = push decisão
+        // Progressão natural
         if (pressureLevel >= 3) {
             return [
-                { text: '🚀 Quero isso', cta: true, url: data.hotmartLink || hotmartLink },
-                { text: '💡 Ainda tenho dúvidas' }
+                { text: '✅ Faz sentido pra mim' },
+                { text: '💡 Me conta mais' }
             ];
         }
 
-        // Nível 2 = binário
-        if (pressureLevel >= 2) {
-            return [
-                { text: '✅ Faz sentido' },
-                { text: '🤔 Ainda não sei' }
-            ];
-        }
-
+        // Sem botões nas primeiras interações — deixar o chat fluir
         return [];
     }
 

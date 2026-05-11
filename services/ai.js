@@ -8,7 +8,7 @@ const PROVIDERS = [
         keyEnv: 'GROQ_API_KEY',
         modelEnv: 'GROQ_MODEL',
         defaultModel: 'llama-3.3-70b-versatile',
-        maxTokens: 1200
+        maxTokens: 1500
     },
     {
         name: 'OpenRouter',
@@ -16,7 +16,7 @@ const PROVIDERS = [
         keyEnv: 'OPENROUTER_API_KEY',
         modelEnv: 'OPENROUTER_MODEL',
         defaultModel: 'meta-llama/llama-3.3-70b-instruct',
-        maxTokens: 1200,
+        maxTokens: 1500,
         extraHeaders: { 'HTTP-Referer': 'https://linkmagico.ai', 'X-Title': 'LinkMagico Demo' }
     },
     {
@@ -25,7 +25,7 @@ const PROVIDERS = [
         keyEnv: 'OPENAI_API_KEY',
         modelEnv: 'OPENAI_MODEL',
         defaultModel: 'gpt-4o-mini',
-        maxTokens: 1200
+        maxTokens: 1500
     }
 ];
 
@@ -38,6 +38,8 @@ function detectLinkType(url, content) {
     if (/comprar|compre|adicionar ao carrinho|pre[çc]o|oferta|produto|loja|shop|store/.test(c)) return 'product';
     if (/\.com\.br\/produto|\/product|\/shop|\/loja/.test(u)) return 'product';
     if (/consultoria|servi[çc]o|contrat|or[çc]amento|freelanc|ag[êe]ncia|atendimento/.test(c)) return 'service';
+    if (/instagram\.com|facebook\.com|tiktok\.com|linkedin\.com|twitter\.com|x\.com/.test(u)) return 'social';
+    if (/landing|captura|lead|cadastr|inscreva|lista de espera/.test(c)) return 'landing';
     return 'generic';
 }
 
@@ -64,6 +66,8 @@ function analyzeEmotion(message) {
     if (/garant|devolu|reembols|cancel/i.test(msg)) intentions.push('garantia');
     if (/result|depoiment|prova|funciona mesmo/i.test(msg)) intentions.push('prova_social');
     if (/comprar|adquirir|assinar|ativar|quero|pegar/i.test(msg)) intentions.push('compra');
+    if (/entrega|frete|prazo|envio|enviar/i.test(msg)) intentions.push('entrega');
+    if (/diferença|diferencial|vantagem|melhor|comparar|versus|vs/i.test(msg)) intentions.push('diferencial');
     if (intentions.length === 0) intentions.push('informação_geral');
 
     return { primary, hesitating, urgency, intentions };
@@ -78,110 +82,204 @@ function analyzeJourneyStage(message) {
     return 'DESCOBERTA';
 }
 
-// ===== PRESSÃO PROGRESSIVA =====
-function getPressureLevel(messageCount, hesitating) {
-    if (messageCount >= 6) return 4;
-    if (messageCount >= 4 || hesitating) return 3;
-    if (messageCount >= 2) return 2;
-    return 1;
-}
+// ===== CONSTRUIR CONTEXTO DA PÁGINA =====
+function buildPageContext(pageData) {
+    let context = '';
 
-// ===== CONSTRUIR SYSTEM PROMPT — 100% CLOSER =====
-function buildSystemPrompt(pageData, emotion, stage, messageCount) {
-    const linkType = detectLinkType(pageData.url, pageData.cleanText);
-    const pressureLevel = getPressureLevel(messageCount, emotion.hesitating);
-
-    const priceInfo = pageData.prices?.length ? `PREÇOS: ${pageData.prices.join(', ')}` : '';
-
-    // Loop de prova — ativar quando hesitando
-    const proofLoop = emotion.hesitating ? `
-🔁 LOOP DE PROVA (USAR AGORA):
-Insira naturalmente: "Aliás, volta um segundo naquela conversa que você viu. Aquilo ali é exatamente o momento onde a venda começa. Não foi pressão. Foi resposta na hora certa."
-Depois reconduza para decisão binária.` : '';
-
-    // Diretiva por nível de pressão
-    let pressureDirective = '';
-    switch (pressureLevel) {
-        case 1:
-            pressureDirective = 'NÍVEL 1 — ABERTURA: Guie. Pergunte. Não pressione ainda.';
-            break;
-        case 2:
-            pressureDirective = 'NÍVEL 2 — DIREÇÃO: Mostre cenário "sem vs com". Conduza para decisão.';
-            break;
-        case 3:
-            pressureDirective = `NÍVEL 3 — DECISÃO: Use exatamente:
-"Então você já entendeu tudo. A questão agora não é mais 'se funciona'. É quantas pessoas você está perdendo sem isso. Faz sentido continuar assim?"`;
-            break;
-        case 4:
-            pressureDirective = `NÍVEL 4 — FECHAMENTO FORTE: Use exatamente:
-"Você já viu funcionando. Já entendeu o impacto. E sabe que isso se aplica ao seu caso. A única coisa que ainda não aconteceu é você ativar. Então vamos simplificar: ou você continua perdendo essas oportunidades ou coloca isso pra rodar agora."`;
-            break;
+    if (pageData.title) {
+        context += `TÍTULO DA PÁGINA: ${pageData.title}\n`;
     }
 
-    return `Você é um CLOSER. Não é suporte. Não é assistente. Você FECHA vendas.
+    if (pageData.description) {
+        context += `DESCRIÇÃO: ${pageData.description}\n`;
+    }
 
-===== REGRA PRINCIPAL (NÃO NEGOCIÁVEL) =====
-A IA NÃO RESPONDE. Ela CONDUZ DECISÃO.
-Toda resposta DEVE terminar em: escolha, confronto leve, ou avanço no funil.
+    if (pageData.summary) {
+        context += `RESUMO: ${pageData.summary}\n`;
+    }
 
-===== REGRAS INVIOLÁVEIS =====
-1. MÁXIMO 3 LINHAS por resposta. Sem exceção.
-2. SEMPRE terminar com decisão binária (sim/não, faz sentido/não faz).
-3. SEMPRE trazer consequência (perda de venda, oportunidade perdida).
-4. NUNCA ser passivo. NUNCA tom de suporte.
-5. NUNCA pular para link sem pré-fechamento.
-6. Se explicar algo, 2 linhas no máximo e redirecionar para decisão.
+    if (pageData.prices && pageData.prices.length > 0) {
+        context += `PREÇOS ENCONTRADOS: ${pageData.prices.join(', ')}\n`;
+    }
 
-===== FRASES 100% PROIBIDAS =====
-NUNCA use NENHUMA destas frases ou variações:
-- "isso é normal"
-- "muitas pessoas sentem isso"  
-- "posso te explicar"
-- "fico feliz em ajudar"
-- "claro, vou te explicar"
-- "entendo sua preocupação"
-- "é uma ótima pergunta"
-Qualquer tom empático passivo está PROIBIDO.
+    if (pageData.cta) {
+        context += `BOTÃO DE AÇÃO PRINCIPAL: "${pageData.cta}"\n`;
+    }
 
-===== NÍVEL DE PRESSÃO ATUAL: ${pressureLevel}/4 =====
-${pressureDirective}
+    if (pageData.contacts) {
+        const c = pageData.contacts;
+        if (c.whatsapp && c.whatsapp.length > 0) context += `WHATSAPP: ${c.whatsapp.join(', ')}\n`;
+        if (c.telefone && c.telefone.length > 0) context += `TELEFONE: ${c.telefone.join(', ')}\n`;
+        if (c.email && c.email.length > 0) context += `EMAIL: ${c.email.join(', ')}\n`;
+    }
 
-===== TRATAMENTO DE OBJEÇÕES =====
+    // INJETAR O CONTEÚDO REAL DA PÁGINA (máx 4000 chars para deixar espaço no context window)
+    if (pageData.cleanText) {
+        const maxLen = 4000;
+        const text = pageData.cleanText.substring(0, maxLen);
+        context += `\nCONTEÚDO COMPLETO DA PÁGINA:\n---\n${text}\n---\n`;
+    }
 
-SE USUÁRIO DIZ "não sei" ou hesita:
-"Você já viu funcionando. Então não é falta de clareza. É só uma decisão agora: isso faz sentido pro seu cenário ou não?"
+    return context;
+}
 
-SE USUÁRIO DIZ "vou pensar":
-"Pensar não resolve o problema. Porque enquanto você pensa, os visitantes continuam chegando, tendo dúvida e indo embora. A pergunta real é: faz sentido continuar deixando isso acontecer?"
+// ===== CONSTRUIR SYSTEM PROMPT — ESPECIALISTA NO PRODUTO =====
+function buildSystemPrompt(pageData, emotion, stage, messageCount) {
+    const linkType = detectLinkType(pageData.url, pageData.cleanText);
+    const pageContext = buildPageContext(pageData);
+    const productName = pageData.title || 'este produto/serviço';
 
-SE PERGUNTAM "como funciona":
-"Cola um link, a IA usa o conteúdo pra conversar e conduzir. Mas o ponto é: você quer isso rodando ou não?" (2 linhas, redirecionar)
+    // Diretiva por tipo de link
+    let typeDirective = '';
+    switch (linkType) {
+        case 'product':
+            typeDirective = `Esta é uma PÁGINA DE PRODUTO. Foque em benefícios, características, diferenciais e preço. Ajude o visitante a entender por que este produto é a melhor escolha.`;
+            break;
+        case 'service':
+            typeDirective = `Esta é uma PÁGINA DE SERVIÇO. Foque em resultados, metodologia, credibilidade e processo. Ajude o visitante a entender o valor do serviço.`;
+            break;
+        case 'affiliate':
+            typeDirective = `Esta é uma PÁGINA DE VENDAS/AFILIADO. Foque na transformação prometida, nos benefícios do curso/produto digital, depoimentos mencionados e na oferta.`;
+            break;
+        case 'social':
+            typeDirective = `Esta é uma REDE SOCIAL. Foque no conteúdo/perfil da pessoa, no que ela oferece, e como o visitante pode se beneficiar.`;
+            break;
+        case 'landing':
+            typeDirective = `Esta é uma LANDING PAGE. Foque na proposta de valor, no que está sendo oferecido e nos benefícios de se cadastrar/participar.`;
+            break;
+        default:
+            typeDirective = `Analise o conteúdo e identifique o que está sendo oferecido. Foque nos pontos mais relevantes para um potencial cliente.`;
+    }
 
-SE PERGUNTAM "preço":
-"Antes do valor: se isso já começasse a recuperar vendas que você perde hoje, faria sentido ativar agora?" (pré-fechamento obrigatório)
+    // Diretiva de progressão baseada no número de mensagens
+    let progressionDirective = '';
+    if (messageCount <= 2) {
+        progressionDirective = `FASE INICIAL: Seja acolhedor. Responda a pergunta usando os dados da página. Mostre que você CONHECE profundamente o produto/serviço. Pergunte algo específico sobre a necessidade do visitante.`;
+    } else if (messageCount <= 5) {
+        progressionDirective = `FASE INTERMEDIÁRIA: Continue respondendo com base no conteúdo real. Conecte as necessidades do visitante com os benefícios específicos encontrados na página. Se houver preço, mencione-o quando relevante.`;
+    } else if (messageCount <= 8) {
+        progressionDirective = `FASE DE DIREÇÃO: Você já demonstrou conhecimento. Agora conduza para a decisão. Use os dados reais para reforçar por que este produto/serviço é ideal para o visitante.`;
+    } else {
+        progressionDirective = `FASE DE FECHAMENTO: É hora de conduzir à ação. Reforce os pontos principais que já discutiram e guie para o próximo passo (compra, contato, cadastro).`;
+    }
 
-SE PERGUNTAM "garantia":
-"7 dias. Se não funcionar, devolve. Risco zero. Mas pela conversa, você já viu que funciona. Quer ativar?"
+    // Diretiva emocional
+    let emotionDirective = '';
+    if (emotion.hesitating) {
+        emotionDirective = `O visitante está HESITANDO. Não pressione — ofereça segurança com dados concretos da página (garantia, depoimentos, resultados mencionados).`;
+    } else if (emotion.primary === 'entusiasmo') {
+        emotionDirective = `O visitante está ENTUSIASMADO. Aproveite o momento — reforce a decisão e conduza direto para a ação.`;
+    } else if (emotion.primary === 'frustração') {
+        emotionDirective = `O visitante está FRUSTRADO. Seja direto, objetivo e mostre empatia genuína. Resolva a questão com fatos do conteúdo.`;
+    }
 
-===== CONTEXTO =====
-Página: ${pageData.title || 'Página'}
+    return `Você é um CONSULTOR DE VENDAS INTELIGENTE que CONHECE PROFUNDAMENTE o produto/serviço da página abaixo. Você NÃO é um assistente genérico — você é um especialista neste produto/serviço específico.
+
+===== SUA MISSÃO =====
+1. RESPONDER perguntas do visitante usando EXCLUSIVAMENTE as informações reais extraídas da página
+2. DEMONSTRAR conhecimento profundo sobre o produto/serviço
+3. CONDUZIR naturalmente o visitante até a decisão de compra/ação
+4. Ser natural, humano e conversacional — como um vendedor experiente que realmente conhece o que vende
+
+===== REGRAS DE OURO =====
+1. TODAS as suas respostas devem ser baseadas no CONTEÚDO REAL da página abaixo. NÃO invente informações.
+2. Se o visitante perguntar algo que NÃO está no conteúdo, diga honestamente: "Essa informação específica não está na página, mas posso te ajudar com [algo que você sabe]."
+3. Seja CONVERSACIONAL e HUMANO. Respostas curtas e diretas (2-4 frases por mensagem).
+4. SEMPRE termine com uma pergunta ou uma sugestão de próximo passo.
+5. Use dados concretos: preços, características, benefícios — tudo que estiver na página.
+6. NUNCA mencione que você é uma IA, que está lendo uma página, ou que extraiu dados. Fale como se fosse um atendente real.
+7. Responda em português do Brasil, tom profissional mas acessível.
+
+===== ${typeDirective} =====
+
+===== ${progressionDirective} =====
+
+${emotionDirective ? `===== CONTEXTO EMOCIONAL: ${emotionDirective} =====` : ''}
+
+===== DADOS DA PÁGINA (SUA BASE DE CONHECIMENTO) =====
 URL: ${pageData.url}
-${priceInfo}
-Tipo: ${linkType.toUpperCase()}
-Emoção: ${emotion.primary.toUpperCase()}
-Hesitação: ${emotion.hesitating ? 'SIM' : 'NÃO'}
-Jornada: ${stage}
-Interações: ${messageCount}
+${pageContext}
 
-${proofLoop}
+===== OBJETIVO FINAL =====
+Quando o visitante demonstrar interesse claro ou pedir para comprar/contratar, guie-o para a ação:
+- Se houver link de checkout/compra na página, direcione
+- Se houver WhatsApp, sugira contato direto
+- Se houver CTA claro ("${pageData.cta || 'Comprar'}"), use-o como referência
 
-===== PRÉ-FECHAMENTO (OBRIGATÓRIO ANTES DE CTA) =====
-"Pelo que você me falou, isso resolve exatamente o seu cenário. Faz sentido colocar isso no seu negócio agora?"
+===== INFORMAÇÕES DE CONTEXTO DA CONVERSA =====
+Emoção detectada: ${emotion.primary.toUpperCase()}
+Estágio: ${stage}
+Mensagem #${messageCount}
+${emotion.hesitating ? '⚠️ Visitante está hesitando — ofereça segurança, não pressão' : ''}
+${emotion.urgency ? '🔥 Visitante tem urgência — seja direto e ágil' : ''}
 
-===== FECHAMENTO =====
-"Então vamos direto. Você só precisa criar seu primeiro LinkMágico e já começa a usar."
+LEMBRE-SE: Você é o especialista neste produto/serviço. Demonstre isso em cada resposta.`;
+}
 
-LEMBRE-SE: Você é closer. Conduz. Pressiona com elegância. Fecha. Sem exceção.`;
+// ===== GERAR MENSAGEM DE ABERTURA CONTEXTUAL =====
+function generateOpeningMessage(pageData) {
+    const title = pageData.title || '';
+    const description = pageData.description || '';
+    const linkType = detectLinkType(pageData.url, pageData.cleanText);
+    const prices = pageData.prices || [];
+    const cta = pageData.cta || '';
+    const cleanText = (pageData.cleanText || '').toLowerCase();
+
+    // Extrair informação-chave para abertura personalizada
+    let productHint = title;
+    if (description && description.length > title.length) {
+        productHint = description.substring(0, 120);
+    }
+
+    let opening = {};
+
+    switch (linkType) {
+        case 'product':
+            opening = {
+                line1: `Oi! 👋 Vi que você está olhando "${title}".`,
+                line2: prices.length > 0
+                    ? `Esse é um dos itens mais procurados, e está por ${prices[0]}. Quer saber mais sobre ele ou tem alguma dúvida específica?`
+                    : `Posso te ajudar com informações sobre este produto — características, disponibilidade, qualquer dúvida que tiver!`
+            };
+            break;
+        case 'service':
+            opening = {
+                line1: `Oi! 👋 Tudo bem? Vi que você está conhecendo os serviços de "${title}".`,
+                line2: `Me conta — o que você está buscando resolver? Posso te explicar como funciona e se faz sentido pro seu caso.`
+            };
+            break;
+        case 'affiliate':
+            opening = {
+                line1: `Oi! 👋 Vi que você está conhecendo o "${title}".`,
+                line2: prices.length > 0
+                    ? `Esse produto tem um investimento de ${prices[0]}. Quer que eu te explique como funciona e o que está incluso?`
+                    : `Quer que eu te explique exatamente o que está incluso e como funciona? Posso esclarecer qualquer dúvida!`
+            };
+            break;
+        case 'social':
+            opening = {
+                line1: `Oi! 👋 Vi que você veio pelo perfil de "${title}".`,
+                line2: `Em que posso te ajudar? Se quiser saber mais sobre os serviços ou conteúdos oferecidos, é só perguntar!`
+            };
+            break;
+        case 'landing':
+            opening = {
+                line1: `Oi! 👋 Que bom que você chegou aqui!`,
+                line2: productHint
+                    ? `Vi que você está conferindo "${productHint.substring(0, 80)}". Quer saber mais detalhes ou tem alguma dúvida antes de se inscrever?`
+                    : `Posso te ajudar com qualquer dúvida sobre o que está sendo oferecido aqui. O que gostaria de saber?`
+            };
+            break;
+        default:
+            opening = {
+                line1: title
+                    ? `Oi! 👋 Vi que você está conferindo "${title}".`
+                    : `Oi! 👋 Que bom que você está aqui!`,
+                line2: `Me conta — o que você está procurando? Posso te ajudar com qualquer informação sobre o que temos disponível.`
+            };
+    }
+
+    return opening;
 }
 
 // ===== DIVIDIR RESPOSTAS =====
@@ -193,7 +291,7 @@ function splitResponse(text) {
 // ===== CHAMAR PROVEDOR DE IA =====
 async function callProvider(provider, messages) {
     const apiKey = process.env[provider.keyEnv];
-    if (!apiKey || apiKey.includes('sua-chave')) return null;
+    if (!apiKey || apiKey.includes('sua-chave') || apiKey.includes('INSIRA')) return null;
     const model = process.env[provider.modelEnv] || provider.defaultModel;
     try {
         const headers = {
@@ -204,7 +302,7 @@ async function callProvider(provider, messages) {
         const response = await axios.post(provider.url, {
             model, messages,
             max_tokens: provider.maxTokens,
-            temperature: 0.7,
+            temperature: 0.75,
             top_p: 0.9
         }, { headers, timeout: 30000 });
         const content = response.data?.choices?.[0]?.message?.content;
@@ -222,14 +320,19 @@ async function callProvider(provider, messages) {
 // ===== GERAR RESPOSTA COM FALLBACK =====
 async function generateResponse(userMessage, pageData, conversationHistory = [], messageCount = 0) {
     if (!userMessage || !String(userMessage).trim()) {
-        return 'Desculpe, não entendi sua mensagem. Poderia reformular?';
+        return { text: 'Desculpe, não entendi sua mensagem. Poderia reformular?', provider: 'validation', emotion: { primary: 'neutro' }, stage: 'DESCOBERTA', linkType: 'generic', pressureLevel: 1 };
     }
     const cleanMessage = String(userMessage).replace(/<[^>]*>/g, '').trim();
     const emotion = analyzeEmotion(cleanMessage);
     const stage = analyzeJourneyStage(cleanMessage);
     const systemPrompt = buildSystemPrompt(pageData, emotion, stage, messageCount);
     const linkType = detectLinkType(pageData.url, pageData.cleanText);
-    const pressureLevel = getPressureLevel(messageCount, emotion.hesitating);
+
+    // Calcular nível de progressão (não "pressão")
+    let progressionLevel = 1;
+    if (messageCount >= 8) progressionLevel = 4;
+    else if (messageCount >= 5) progressionLevel = 3;
+    else if (messageCount >= 3) progressionLevel = 2;
 
     const messages = [
         { role: 'system', content: systemPrompt },
@@ -244,7 +347,7 @@ async function generateResponse(userMessage, pageData, conversationHistory = [],
                 text: response,
                 messages: splitResponse(response),
                 provider: provider.name,
-                emotion, stage, linkType, pressureLevel
+                emotion, stage, linkType, pressureLevel: progressionLevel
             };
         }
     }
@@ -253,7 +356,7 @@ async function generateResponse(userMessage, pageData, conversationHistory = [],
     const fallback = pageData.title
         ? `Desculpe, estou com uma instabilidade momentânea. Sobre "${pageData.title}", posso te ajudar assim que voltar ao normal. Tente novamente em alguns segundos!`
         : 'Desculpe, estou com uma instabilidade momentânea. Tente novamente em alguns segundos!';
-    return { text: fallback, provider: 'fallback', emotion, stage, linkType: 'generic', pressureLevel: 1 };
+    return { text: fallback, messages: [fallback], provider: 'fallback', emotion, stage, linkType: 'generic', pressureLevel: 1 };
 }
 
-module.exports = { generateResponse, analyzeEmotion, analyzeJourneyStage, detectLinkType };
+module.exports = { generateResponse, generateOpeningMessage, analyzeEmotion, analyzeJourneyStage, detectLinkType };
